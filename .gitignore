@@ -136,4 +136,4 @@ allure-results/
 
 # Project specific
 .tmp_delete/
-tests/Raw/
+# tests/Raw/
