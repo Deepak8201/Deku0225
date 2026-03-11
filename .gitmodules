@@ -1,0 +1,6 @@
+[submodule ".cursor/prompts/core-prompts"]
+	path = .cursor/prompts/core-prompts
+	url = https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/submodules/core-prompts.git
+[submodule ".cursor/rules/core-rules"]
+	path = .cursor/rules/core-rules
+	url = https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/submodules/core-rules.git
