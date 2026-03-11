@@ -176,6 +176,8 @@ atp3-tests-template/
 ├── .prettierrc.json                      # Prettier configuration
 ├── .prettierignore                       # Prettier ignore rules
 ├── .gitignore                            # Git ignore rules
+├── .gitmodules                           # Git submodules configuration
+├── .gitlab-ci.yml                        # GitLab CI/CD pipeline configuration
 ├── package.json                          # Node.js dependencies
 ├── playwright.config.ts                  # Playwright configuration
 ├── tsconfig.json                         # TypeScript configuration
