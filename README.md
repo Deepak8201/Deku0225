@@ -16,7 +16,7 @@ This template provides a complete AI-enhanced test automation framework with:
 - **Database Support**: Multi-database connectivity (MySQL, PostgreSQL, MSSQL, MongoDB, Oracle)
 - **File Management**: TestFileHelper for upload testing with stable/temp file structure
 - **Tag-Based Execution**: Flexible test filtering and categorization
-- **Configuration Management**: Environment-based settings with fallback support
+- **Configuration Management**: Environment configuration via EnvGen or locally using environment variable
 
 ---
 
