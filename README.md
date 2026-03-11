@@ -113,27 +113,29 @@ git submodule status
 atp3-tests-template/
 ├── .cursor/
 │   ├── prompts/                               # Cursor AI prompts
-│   └── rules/                                 # Cursor AI rules for test generation
-│       ├── RuleRegistry.mdc                      # Central registry and index of all rules
-│       ├── MainGenerationOrchestrator.mdc        # Main workflow orchestrator
-│       ├── Phase0_ReusabilityAnalysis.mdc        # Component reusability check
-│       ├── Phase1_LocatorResearch.mdc            # Page investigation and element collection
-│       ├── Phase2_PreGenerationVerification.mdc  # Research completion gate
-│       ├── Phase3_ImplementationStandards.mdc    # Implementation patterns
-│       ├── Phase4_TestGeneration.mdc             # Code generation phase
-│       ├── Phase5_Validation.mdc                 # Test execution and validation
-│       ├── ArchitectureLayeredDesign.mdc         # Layered architecture requirements
-│       ├── LocatorManagementSystem.mdc           # Locator cache management
-│       ├── TaggingStandards.mdc                  # Test tagging system
-│       ├── TestExecutionRequirements.mdc         # Playwright execution parameters
-│       ├── ReportingRequirements.mdc             # Report generation standards
-│       ├── InvestigationTracking.mdc             # Investigation documentation
-│       ├── DatabaseHelperRule.mdc                # Database integration patterns
-│       ├── APIIntegrationRule.mdc                # API integration patterns
-│       └── project-custom-rule.mdc               # Add your custom rules here
+│   │   └── core-prompts/                         # Core prompts for test generation
+│   └── rules/                                 # Cursor AI rules
+│       └── core-rules/                           # Core rules for test generation
+│           ├── RuleRegistry.mdc                      # Central registry and index of all rules
+│           ├── MainGenerationOrchestrator.mdc        # Main workflow orchestrator
+│           ├── Phase0_ReusabilityAnalysis.mdc        # Component reusability check
+│           ├── Phase1_LocatorResearch.mdc            # Page investigation and element collection
+│           ├── Phase2_PreGenerationVerification.mdc  # Research completion gate
+│           ├── Phase3_ImplementationStandards.mdc    # Implementation patterns
+│           ├── Phase4_TestGeneration.mdc             # Code generation phase
+│           ├── Phase5_Validation.mdc                 # Test execution and validation
+│           ├── ArchitectureLayeredDesign.mdc         # Layered architecture requirements
+│           ├── LocatorManagementSystem.mdc           # Locator cache management
+│           ├── TaggingStandards.mdc                  # Test tagging system
+│           ├── TestExecutionRequirements.mdc         # Playwright execution parameters
+│           ├── ReportingRequirements.mdc             # Report generation standards
+│           ├── InvestigationTracking.mdc             # Investigation documentation
+│           ├── DatabaseHelperRule.mdc                # Database integration patterns
+│           ├── APIIntegrationRule.mdc                # API integration patterns
+│           └── project-custom-rule.mdc               # Add your custom rules here
 │
 ├── Engine/
-│   └── Shared/
+│   └── Shared/                           # Core implementation
 │       ├── AIElement.ts                  # Smart element locator with cache
 │       ├── AIPage.ts                     # Base page class
 │       ├── AITomsPage.ts                 # Table view page base class
