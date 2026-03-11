@@ -6,3 +6,7 @@
 	path = .cursor/rules/core-rules
 	url = https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/submodules/core-rules.git
 	branch = master
+[submodule "Engine/Shared"]
+	path = Engine/Shared
+	url = https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/submodules/core-engine.git
+	branch = master
