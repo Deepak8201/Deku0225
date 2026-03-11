@@ -1,0 +1,225 @@
+---
+alwaysApply: true
+---
+# Phase 1: Locator Research
+
+> **Purpose**: Investigate NEW page structures, collect element HTML, and generate locators from real data.
+> This phase is SKIPPED for EXISTING components identified in **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)**.
+
+## 📋 Metadata
+- **ID**: `phase_1_locator_research`
+- **Name**: Phase 1 - Locator Research
+- **Phase**: 1
+- **Applies To**: NEW components only (SKIP for EXISTING components)
+- **Previous Phase**: **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)**
+- **Next Phase**: **[Phase 2](mdc:Phase2_PreGenerationVerification.mdc)**
+
+---
+
+## 🎯 Phase Objectives
+
+1. Capture page state using Playwright snapshots (NEW components only)
+2. Collect element HTML using `browser_evaluate` (NEW components only)
+3. Generate optimal locators following Playwright best practices
+4. Store findings in `ElementsCollected.ts` and prepare for `locator_cache.json`
+5. Document complete investigation sequence for verification
+
+---
+
+## 🔄 1.1 Capture Page State (MANDATORY - NEW COMPONENTS ONLY)
+
+### **Requirements**
+- **(MANDATORY)** **SKIP this step for reusable components** identified in **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)**
+- **(MANDATORY)** Use Playwright snapshot to research actual page structure for NEW components only
+- **(MANDATORY)** Take snapshots of target pages before generating any locators for NEW components
+- **(MANDATORY)** NEVER generate blind locators - all locators MUST be derived from real page snapshots
+
+### **Actions**
+- Navigate to target pages
+- Use Playwright snapshot tool to capture page state
+- Document page structure and layout
+- Identify interactive elements
+
+---
+
+## 📋 1.2 Element HTML Collection (MANDATORY - NEW COMPONENTS ONLY)
+
+### **Requirements**
+- **(MANDATORY)** **SKIP this step for reusable components** identified in **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)**
+- **(MANDATORY)** BEFORE any interaction with web page elements (buttons, links, inputs, etc.), use `browser_evaluate` to get the element's HTML code
+- **(MANDATORY)** **Prefer VISIBLE controls** - prioritize collecting and using elements that are currently visible and interactable on screen
+- **(MANDATORY)** **Verify control alignment with test description** - ensure controls used match the text/name mentioned in test description
+- **(MANDATORY)** **Consider actual control types** - controls may have different HTML types than expected:
+  - Buttons may be `<a href role="button">` instead of `<button>` type
+  - Links may use different elements than standard `<a href ...>`
+  - Always inspect actual HTML structure, not assumptions
+
+### **Storage Requirements**
+- **(MANDATORY)** Save ALL collected element HTML to `tests/Raw/Debug/ElementsCollected.ts` file
+- **(MANDATORY)** Use the structure: `{ description, action, html, locatorSuggestion }`
+- **(MANDATORY)** This file MUST be used as the source for creating `tests/Utils/locator_cache.json`
+- **(MANDATORY)** Never interact with an element before collecting its HTML code
+- **(MANDATORY)** Collect HTML for ALL interactive elements: buttons, links, inputs, selects, checkboxes, radio buttons, textareas, etc.
+- **(MANDATORY)** **Store page investigation sequence** - document all steps, findings, and decisions during page research in `tests/Raw/Debug/` folder
+
+### **Table View Context**
+- **(MANDATORY)** When working with table views, ensure collected controls belong to the correct table (important when multiple tables exist on same page)
+
+---
+
+## 🎯 1.3 Locator Generation from Real Data (MANDATORY - NEW COMPONENTS ONLY)
+
+### **Requirements**
+- **(MANDATORY)** **SKIP this step for reusable components** identified in **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)** - use existing locators from cache
+- **(MANDATORY)** DO NOT generate locators not based on actual page state for NEW components
+- **(MANDATORY)** All NEW locators must be derived from real page snapshots and collected element HTML
+- **(MANDATORY)** The `locatorSuggestion` field from `ElementsCollected.ts` MUST be used directly as the `locator` value in `locator_cache.json`
+- **(MANDATORY)** Verify locator accuracy against captured page state
+- **(MANDATORY)** No guessing - always collect actual HTML first for NEW components
+
+### **Locator Generation Rules (for locatorSuggestion field)**
+Reference: [Playwright Locator Best Practices](https://playwright.dev/docs/locators)
+
+**Priority Order**:
+
+**1. Text-based selectors (HIGHEST PRIORITY)**:
+   - `button:has-text("Sign In")` - for buttons with text
+   - `a:has-text("Company Info")` - for links with text
+   - `:has-text("exact text")` - for elements with specific text
+
+**2. Form field selectors by placeholder**:
+   - `input[placeholder="Email *"]` - for inputs with placeholder
+   - `input[placeholder="First Name *"]` - clear and stable
+
+**3. Attribute-based selectors**:
+   - `input[name="username"]` - for form inputs with name
+   - `input[type="submit"][name="login"]` - combine type and name
+   - `a[href="/e-care/company-info"]` - for links by href
+
+**4. Role-based selectors**:
+   - `[role="tab"]:has-text("Users")` - for tabs with text
+   - `[role="button"]:has-text("Create")` - for role buttons
+
+**5. ID selectors (use cautiously)**:
+   - `#username` - only if ID is stable and meaningful
+   - Avoid auto-generated IDs like `#rc-tabs-0-tab-users`
+
+**6. Class selectors (LOWEST PRIORITY)**: 
+   - `button[class*="ant-btn-icon-only"]` - only when no better option
+   - Use `*=` for partial class match to handle dynamic classes
+
+**AVOID**:
+- ❌ Long complex selectors with multiple classes
+- ❌ Overly specific paths: `div.container > div.row > button.primary`
+- ❌ Dynamic classes that change on each run
+- ❌ Index-based selectors unless absolutely necessary
+
+**EXAMPLES OF GOOD LOCATORS**:
+```typescript
+// ✅ GOOD - Simple, readable, stable
+locatorSuggestion: 'button:has-text("Log In")'
+locatorSuggestion: 'input[name="username"]'
+locatorSuggestion: 'input[placeholder="Email *"]'
+locatorSuggestion: 'a[href="/e-care/company-info"]'
+locatorSuggestion: '[role="tab"]:has-text("Users")'
+
+// ❌ BAD - Too complex, unstable
+locatorSuggestion: 'button.ant-btn.css-t2kvhy.ant-btn-default.ant-btn-color-default.ant-btn-variant-outlined.KJuB2.taButton.RMLC5.GK8tV'
+locatorSuggestion: 'div[role="tab"][id="rc-tabs-0-tab-users"] div.taTab:has-text("Users")'
+```
+
+---
+
+## 🎨 Dynamic Elements - Use `{param}` Placeholder
+
+For elements identified by **runtime data** (user names, item names, dynamic text):
+
+**locatorSuggestion with `{param}`**:
+```typescript
+// Row by data: 'tr:has(strong:has-text("{param}")) a.btn-outline-info i.fa-eye'
+// Button by text: 'button:has-text("{param}")'
+// In container: 'div:has(h3:has-text("{param}")) button.action'
+```
+
+**Use `{param}` when**: Element ID depends on test data (names, IDs from scenario)  
+**Don't use when**: Element has unique static locator (name, ID, class)
+
+---
+
+## 📁 Output Files
+
+### **ElementsCollected.ts Structure**
+**Location**: `tests/Raw/Debug/ElementsCollected.ts`
+
+```typescript
+export const elementsCollected = [
+  {
+    description: 'Login button',  // Human-readable (native language)
+    action: 'click',
+    html: '<button class="login-btn" type="submit">Log In</button>',
+    locatorSuggestion: 'button:has-text("Log In")'  // MANDATORY
+  },
+  {
+    description: 'Username input field',
+    action: 'fill',
+    html: '<input name="username" type="text" placeholder="Enter username">',
+    locatorSuggestion: 'input[name="username"]'  // MANDATORY
+  },
+  // ... more elements
+];
+```
+
+### **Investigation Sequence Documentation**
+**Location**: `tests/Raw/Debug/InvestigationLog.md`
+
+**Content** (reference **[Investigation Tracking](mdc:InvestigationTracking.mdc)**):
+- Step-by-step sequence of page navigation
+- Elements discovered with their purposes
+- Page structures identified (forms, tables, modals, etc.)
+- Control types verified (actual HTML vs expected)
+- Decisions made during research phase
+- Any issues or special considerations found
+
+---
+
+## ✅ Phase 1 Completion Checklist
+
+- [ ] **(MANDATORY)** Playwright snapshots captured for ALL NEW pages
+- [ ] **(MANDATORY)** Element HTML collected using `browser_evaluate` for ALL NEW interactive elements
+- [ ] **(MANDATORY)** Visible controls prioritized
+- [ ] **(MANDATORY)** Control names verified against test description
+- [ ] **(MANDATORY)** Actual control types considered (not assumed)
+- [ ] **(MANDATORY)** Table context verified (if applicable)
+- [ ] **(MANDATORY)** `ElementsCollected.ts` created with complete structure including `locatorSuggestion`
+- [ ] **(MANDATORY)** Locator generation rules applied (text-based > placeholder > attributes > role > ID > class)
+- [ ] **(MANDATORY)** No blind locators - all derived from actual page state
+- [ ] **(MANDATORY)** `locatorSuggestion` values ready for direct use in `locator_cache.json`
+- [ ] **(MANDATORY)** Investigation sequence documented in `InvestigationLog.md`
+- [ ] **(MANDATORY)** EXISTING components from **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)** documented as reusable (no investigation needed)
+
+---
+
+## 🎯 Success Criteria
+
+- ✅ **Investigation Documentation**: Complete page investigation sequence stored
+- ✅ **Visible Controls**: Visible/interactable controls prioritized
+- ✅ **Control Alignment**: Controls match test description text
+- ✅ **Actual Types**: Control HTML types verified (not assumed)
+- ✅ **Element Collection**: Interactive element HTML collected using `browser_evaluate`
+- ✅ **Table Context**: For pages with multiple tables, controls correctly associated
+- ✅ **Locator Quality**: Locators generated following Playwright best practices
+- ✅ **No Assumptions**: Zero blind locators - all from real page data
+- ✅ **Cache Ready**: `locatorSuggestion` values ready for `locator_cache.json`
+
+---
+
+## ➡️ Next Phase
+
+**Proceed to**: **[Phase 2 - Business Flow Analysis](mdc:Phase2_BusinessFlowAnalysis.mdc)**
+
+**Entry Requirement**: Phase 1 completion checklist 100% satisfied
+
+**What Phase 2 Will Do**:
+- Analyze business flow tags
+- Check existing Business Workflow library
+- Plan business layer orchestration

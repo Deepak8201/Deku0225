@@ -1,0 +1,343 @@
+---
+alwaysApply: true
+---
+# 📚 Cursor Rules Registry
+
+> **Purpose**: Central registry of all Cursor rules with references and descriptions.
+> This file serves as the main index for understanding the rule ecosystem.
+
+## 📋 Metadata
+- **ID**: `rule_registry`
+- **Name**: Cursor Rules Registry
+- **Type**: Registry & Documentation
+- **Status**: Active
+
+---
+
+## 🎯 Core Foundation Rules
+
+These foundational concepts are integrated into the phase-specific and architecture rules below. The initial standalone rules for these concepts have been consolidated into the refined rule set for better modularity and reduced duplication.
+
+---
+
+## 🔄 Test Generation Workflow Rules
+
+### **[Main Generation Orchestrator](mdc:MainGenerationOrchestrator.mdc)**
+- **ID**: `main_generation_orchestrator`
+- **Purpose**: Drives complete test generation workflow through all phases
+- **Scope**: End-to-end test generation process
+- **Status**: Active
+- **Key Topics**:
+  - Phase sequence enforcement
+  - 100% research completion verification
+  - Phase gate controls (no skipping allowed)
+  - Architecture overview
+  - Success criteria
+
+### **[Phase 0: Reusability Analysis](mdc:Phase0_ReusabilityAnalysis.mdc)**
+- **ID**: `phase_0_reusability`
+- **Purpose**: Test analysis, component reusability check, modification protocol
+- **Scope**: Initial test analysis phase
+- **Status**: Active
+- **Key Topics**:
+  - Test description analysis
+  - Existing component discovery (Page Objects, Business, Locators)
+  - Reusability vs new creation decisions
+  - Safe extension/modification protocol
+  - Backward compatibility requirements
+
+### **[Phase 1: Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+- **ID**: `phase_1_locator_research`
+- **Purpose**: Page investigation, element collection, locator generation
+- **Scope**: NEW components only (reusable components skip this phase)
+- **Status**: Active
+- **Key Topics**:
+  - Page state capture (Playwright snapshots)
+  - Element HTML collection (`browser_evaluate`)
+  - Locator generation from real data
+  - Playwright best practices (text-based → placeholder → attributes → role → ID → class)
+  - Investigation sequence documentation
+
+### **[Phase 2: Pre-Generation Verification](mdc:Phase2_PreGenerationVerification.mdc)**
+- **ID**: `phase_2_verification`
+- **Purpose**: 100% research completion gate before code generation
+- **Scope**: Research completion checkpoint
+- **Status**: Active - CRITICAL GATE
+- **Key Topics**:
+  - Research completion verification (100% required)
+  - Cross-reference test steps with investigation findings
+  - NEW components vs EXISTING components coverage
+  - Research Completion Checklist
+  - Prohibition enforcement (no code generation if incomplete)
+  - Complexity-based research continuation protocol
+
+### **[Phase 3: Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)**
+- **ID**: `phase_3_implementation`
+- **Purpose**: Implementation patterns, verification requirements, best practices
+- **Scope**: Code implementation phase
+- **Status**: Active
+- **Key Topics**:
+  - Base class usage (AIPage, AIElement)
+  - Hierarchical logging (TestLogger integration)
+  - Table view detection (AITomsPage compatibility)
+  - Cache-first approach
+  - Page load verification (domcontentloaded)
+  - Element availability verification (waitFor)
+  - Action completion verification
+  - Navigation retry logic
+  - Complex generation checkpoint management
+
+### **[Phase 4: Test Generation](mdc:Phase4_TestGeneration.mdc)**
+- **ID**: `phase_4_test_generation`
+- **Purpose**: Final test code generation standards and requirements
+- **Scope**: Test code generation (blocked until Phase 2 passes)
+- **Status**: Active
+- **Key Topics**:
+  - One test per file mandate
+  - Complete test coverage (100% of test description)
+  - Test scenario structure with tagging
+  - Layered architecture enforcement (Test → Business → Page Objects → AIElement)
+  - SettingsHelper usage (no hardcoded URLs/credentials)
+  - TagHelper.taggedTest() integration
+  - Hierarchical logging integration
+
+### **[Phase 5: Validation](mdc:Phase5_Validation.mdc)**
+- **ID**: `phase_5_validation`
+- **Purpose**: Test execution, regression testing, 100% pass rate verification
+- **Scope**: Test validation and execution
+- **Status**: Active
+- **Key Topics**:
+  - Regression testing (if classes modified)
+  - New test execution parameters (`--workers=1 --headed --project=chromium`)
+  - 100% pass rate mandate
+  - Project structure compliance verification
+  - Regeneration until success
+
+---
+
+## 🏗️ Architecture & Pattern Rules
+
+### **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+- **ID**: `architecture_layered`
+- **Purpose**: Defines layered architecture requirements and restrictions
+- **Scope**: All test automation code
+- **Status**: Active
+- **Key Topics**:
+  - Layer responsibilities (Test Scenario → Business → Page Objects → AIElement → Cache)
+  - Direct locator prohibition (ONLY AIElement accesses locators)
+  - No direct Playwright API usage in high-level layers
+  - Proper call hierarchy enforcement
+  - Single responsibility per layer
+
+### **[Locator Management](mdc:LocatorManagementSystem.mdc)**
+- **ID**: `locator_management`
+- **Purpose**: Locator cache structure, generation rules, AIElement integration
+- **Scope**: Locator handling across all layers
+- **Status**: Active
+- **Key Topics**:
+  - Cache location (`tests/Utils/locator_cache.json`)
+  - Cache structure (PageName → locators → elementKey)
+  - Priority order (Cache first → AI fallback → Error)
+  - Element HTML collection workflow
+  - Locator generation rules (Playwright best practices)
+  - AIElement cache lookup mechanism
+
+### **[Tagging Standards](mdc:TaggingStandards.mdc)**
+- **ID**: `tagging_standards`
+- **Purpose**: Test tagging requirements, categories, and generation rules
+- **Scope**: Test tagging and execution filtering
+- **Status**: Active
+- **Key Topics**:
+  - Tag categories (suite, priority, type, dataImpact, environment, stability, speed, feature, component, team)
+  - TestId format (`TC_XXX_vYYY_DescriptiveName`)
+  - TestTagsMapping.json structure
+  - TagConfiguration.json for validation
+  - TagHelper.taggedTest() wrapper requirement
+  - Extensible tag reuse rules
+  - No manual tag annotations allowed
+
+### **Hierarchical Logging Standards**
+- **Purpose**: TestLogger usage standards across all layers
+- **Scope**: All test automation code
+- **Status**: Integrated into phase rules
+- **Key Topics**:
+  - TestLogger methods per layer (testStep, businessStep, pageStep, elementStep)
+  - Human-readable descriptions requirement
+  - NO console.log usage
+  - Complete coverage (ALL public methods wrapped)
+- **See**: **[Phase3_ImplementationStandards](mdc:Phase3_ImplementationStandards.mdc)**, **[Phase4_TestGeneration](mdc:Phase4_TestGeneration.mdc)**
+
+---
+
+## 🔧 Application-Specific Rules
+
+### **Table View & TOMS Specifics**
+- **Purpose**: TOMS application-specific requirements (TypeId, AITomsPage, table interactions)
+- **Scope**: TOMS application pages and table views
+- **Status**: Integrated into phase rules
+- **Key Topics**:
+  - Table view structure detection
+  - AITomsPage usage decision tree
+  - Table data interaction guidelines
+- **See**: **[Phase3_ImplementationStandards](mdc:Phase3_ImplementationStandards.mdc)**, **[Phase4_TestGeneration](mdc:Phase4_TestGeneration.mdc)**
+
+---
+
+## 📊 Supporting Rules
+
+### **[Test Execution Requirements](mdc:TestExecutionRequirements.mdc)**
+- **ID**: `test_execution`
+- **Purpose**: Playwright execution parameters, success mandate, browser verification
+- **Scope**: Test execution phase
+- **Status**: Active
+- **Key Topics**:
+  - Exact execution parameters (`--workers=1 --headed --project=chromium`)
+  - 100% test success mandate (zero failures, zero skipped)
+  - Browser verification actions
+  - Retry logic and error handling
+
+### **[Reporting Requirements](mdc:ReportingRequirements.mdc)**
+- **ID**: `reporting_requirements`
+- **Purpose**: Test report generation and storage standards
+- **Scope**: Test reporting
+- **Status**: Active
+- **Key Topics**:
+  - File-based reports only (NO hosting)
+  - Report location (`tests/Raw/Report/`)
+  - Playwright configuration for reports
+  - Root folder cleanliness enforcement
+
+### **[Investigation Tracking](mdc:InvestigationTracking.mdc)**
+- **ID**: `investigation_tracking`
+- **Purpose**: Investigation documentation, checkpoint management, debug folder organization
+- **Scope**: Research and investigation phase
+- **Status**: Active
+- **Key Topics**:
+  - Investigation sequence documentation
+  - Self-verification before test generation
+  - Checkpoint management for complex generation
+  - Debug folder organization
+
+---
+
+## 🎯 Custom Project Rules
+
+### **[Project Custom Instructions](mdc:project-custom-rule.mdc)**
+- **ID**: `project_custom_rule`
+- **Purpose**: Project-specific customizations and additional instructions
+- **Scope**: Project-specific requirements
+- **Status**: Active
+- **Key Topics**:
+  - Custom project-specific instructions
+  - Additional requirements beyond standard rules
+  - Project-specific configurations
+- **Note**: This is a placeholder file that can be extended with any project-specific instructions as needed
+
+---
+
+## 🔄 Rule Dependencies & Integration
+
+### **Core Foundation Dependencies**
+```
+Code Generation Standards ────────────┐
+(Integrated into phase rules)         ├──> All Generated Code
+Project Structure Rules ──────────────┘
+(Integrated into phase rules)
+```
+
+### **Generation Workflow Dependencies**
+```
+MainGenerationOrchestrator.mdc
+    ├──> Phase0_ReusabilityAnalysis.mdc
+    ├──> Phase1_LocatorResearch.mdc
+    ├──> Phase2_PreGenerationVerification.mdc (GATE)
+    ├──> Phase3_ImplementationStandards.mdc
+    ├──> Phase4_TestGeneration.mdc
+    └──> Phase5_Validation.mdc
+```
+
+### **Architecture Pattern Dependencies**
+```
+ArchitectureLayeredDesign.mdc
+    ├──> LocatorManagementSystem.mdc
+    └──> Hierarchical Logging Standards
+         (Integrated into phase rules)
+```
+
+### **Supporting Rules Integration**
+```
+TestExecutionRequirements.mdc ────┐
+                                   ├──> Phase5_Validation.mdc
+ReportingRequirements.mdc ─────────┘
+
+InvestigationTracking.mdc ────────> Phase1_LocatorResearch.mdc
+```
+
+---
+
+## 📝 Rule Usage Guidelines
+
+### **When Starting Test Generation**
+1. Review **[MainGenerationOrchestrator](mdc:MainGenerationOrchestrator.mdc)** for workflow overview
+2. Follow phase sequence strictly - NO skipping allowed
+3. Reference phase-specific rules as needed during each phase
+
+### **When Implementing Code**
+1. Follow code generation standards (TypeScript, absolute imports, naming)
+2. Adhere to project structure for file placement
+3. Apply **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)** principles
+4. Integrate hierarchical logging (TestLogger) in all layers
+
+### **When Working with Locators**
+1. Reference **[Locator Management](mdc:LocatorManagementSystem.mdc)** for cache structure
+2. Follow locator generation rules from **[Phase 1](mdc:Phase1_LocatorResearch.mdc)**
+3. Use AIElement exclusively - no direct locator access in high-level code
+
+### **When Working with TOMS Pages**
+1. Check table view detection requirements in **[Phase3_ImplementationStandards](mdc:Phase3_ImplementationStandards.mdc)**
+2. Evaluate AITomsPage compatibility for table views
+3. Use proper table configuration patterns
+
+---
+
+## ✅ Rule Compliance Verification
+
+### **Before Starting Generation**
+- [ ] All rules in registry are accessible
+- [ ] Main orchestrator workflow is understood
+- [ ] Phase sequence is clear
+- [ ] Research completion requirements are understood
+
+### **During Generation**
+- [ ] Following current phase rule
+- [ ] Not skipping phases
+- [ ] Documenting progress appropriately
+- [ ] Verifying completion criteria for each phase
+
+### **After Generation Complete**
+- [ ] All phases completed successfully
+- [ ] 100% pass rate achieved
+- [ ] Project structure compliance verified
+- [ ] All checklists from all phases satisfied
+
+---
+
+## 🎯 Summary
+
+This registry provides a complete map of the Cursor rule ecosystem. Each rule has a specific purpose and scope, and they work together to ensure consistent, high-quality test automation generation.
+
+**Total Active Rules**: 15 files in `.cursor/rules/`
+- 1 Central Registry (RuleRegistry.mdc)
+- 1 Main Orchestrator (MainGenerationOrchestrator.mdc)
+- 6 Phase-Specific Rules (Phase 0, 1, 2, 3, 4, 5)
+- 6 Supporting Rules (Architecture, Locator, Tagging, Execution, Reporting, Investigation)
+- 1 Custom Project Rule (project-custom-rule.mdc)
+
+**Key Principles**:
+1. **Modularity**: Each rule focuses on specific concern
+2. **References**: Rules reference each other to avoid duplication
+3. **Phases**: Generation follows strict phase sequence
+4. **Gates**: Phase 2 acts as critical gate (100% research required)
+5. **Enforcement**: Rules are mandatory and automatically applied
+
+**Start Here**: [MainGenerationOrchestrator](mdc:MainGenerationOrchestrator.mdc)

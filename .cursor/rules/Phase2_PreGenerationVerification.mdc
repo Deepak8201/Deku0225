@@ -1,0 +1,282 @@
+---
+alwaysApply: true
+---
+# Phase 2: Pre-Generation Verification (CRITICAL GATE)
+
+> **Purpose**: 100% research completion gate before implementation and code generation.
+> This is a MANDATORY checkpoint that BLOCKS proceeding until research is verified complete.
+
+## 📋 Metadata
+- **ID**: `phase_2_verification`
+- **Name**: Phase 2 - Pre-Generation Verification
+- **Phase**: 2
+- **Type**: CRITICAL GATE
+- **Previous Phase**: **[Phase 1 - Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+- **Next Phase**: **[Phase 3 - Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)** (ONLY if 100% verified)
+
+---
+
+## 🚨 ABSOLUTE PROHIBITION
+
+> **🔴 CRITICAL ENFORCEMENT**:
+> 
+> **It is STRICTLY FORBIDDEN to move to Phase 3 (Implementation) or any subsequent step before research is 100% complete.**
+> 
+> - This is a hard stop - NO exceptions, NO partial generation, NO workarounds
+> - Research MUST be 100% complete (NEW components researched + EXISTING components documented) before proceeding
+> - If research is incomplete, you are ABSOLUTELY PROHIBITED from generating any code
+> - ONLY ALLOWED ACTION if incomplete: Return to Phase 1 and continue investigation
+
+---
+
+## 🎯 Phase Objectives
+
+1. Verify 100% of test steps have been researched OR documented as reusable
+2. Cross-reference test description with investigation findings AND Phase 0 reusability analysis
+3. Validate NEW components have complete investigation data
+4. Validate EXISTING components are fully documented in reusability analysis
+5. Complete Research Completion Checklist
+6. BLOCK code generation if any test step lacks coverage
+
+---
+
+## ✅ 2.1 Research Completion Verification (MANDATORY)
+
+### **BEFORE Starting ANY Code Generation**
+
+**Requirements**:
+- **(MANDATORY)** **BEFORE starting ANY code generation**, verify that 100% of test steps have been researched
+- **(MANDATORY)** **Cross-reference test description with investigation findings**
+
+### **Cross-Reference Process**
+
+**Step 1: Map Each Test Step**
+- Take each test step from test description
+- Map to corresponding investigation findings OR reusable component
+- Verify coverage: NEW investigation data OR EXISTING component documentation
+
+**Step 2: Verify NEW Components Coverage**
+- Confirm ALL required NEW elements have been collected and stored in `ElementsCollected.ts`
+- Ensure ALL required NEW locators have been generated and stored in `locator_cache.json`
+- Validate investigation log documents complete flow for ALL NEW test steps
+
+**Step 3: Verify EXISTING Components Coverage**
+- Check that EVERY test step using EXISTING components is documented in `ReusabilityAnalysis.md`
+- Confirm EXISTING Page Objects identified in Phase 0 are properly referenced
+- Confirm EXISTING Business Workflows identified in Phase 0 are properly referenced
+- Confirm EXISTING locators from `locator_cache.json` are properly referenced
+
+### **Exception for Reusable Components (from Phase 0 analysis)**
+
+**NO Research Required For**:
+- Test steps using EXISTING Page Objects identified in **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)** → research NOT required
+- Test steps using EXISTING Business Workflows identified in Phase 0 → research NOT required
+- Test steps using EXISTING locators from `locator_cache.json` → research NOT required
+
+**Coverage Formula**:
+```
+100% coverage = NEW components researched + EXISTING components documented in Phase 0
+```
+
+**Reference**: `ReusabilityAnalysis.md` to identify which components are reusable
+
+---
+
+## 🚫 2.2 If Research is Incomplete (MANDATORY ACTIONS)
+
+### **When Research is Less Than 100% Complete**
+
+**PROHIBITED ACTIONS**:
+- **(ABSOLUTELY PROHIBITED)** DO NOT START CODE GENERATION - this is prohibited
+- **(ABSOLUTELY PROHIBITED)** DO NOT generate ANY Page Object code
+- **(ABSOLUTELY PROHIBITED)** DO NOT generate ANY Business Workflow code
+- **(ABSOLUTELY PROHIBITED)** DO NOT generate ANY Test Scenario code
+- **(ABSOLUTELY PROHIBITED)** DO NOT create ANY test-related files
+- **(ABSOLUTELY PROHIBITED)** DO NOT move to Phase 3 or beyond
+
+**REQUIRED ACTIONS**:
+- **(MANDATORY)** **CONTINUE RESEARCH FLOW** - return to **[Phase 1](mdc:Phase1_LocatorResearch.mdc)** investigation mode
+- **(MANDATORY)** **Document missing steps** - identify which NEW test steps still need research
+- **(MANDATORY)** **Resume investigation** - continue page research for missing NEW steps
+- **(MANDATORY)** **Save and continue cycle** - repeat investigation → save findings → continue until 100% complete
+
+---
+
+## 📋 2.3 Research Completion Checklist (MANDATORY)
+
+### **Complete This Checklist Before Proceeding to Phase 3**
+
+- [ ] **(MANDATORY)** Every test step from description has been analyzed
+- [ ] **(MANDATORY)** All test steps mapped to either:
+  - NEW components (need research) → have investigation data, OR
+  - EXISTING components (reuse from Phase 0) → documented in `ReusabilityAnalysis.md`
+- [ ] **(MANDATORY)** All required pages for NEW components have been navigated and investigated
+- [ ] **(MANDATORY)** All interactive elements for NEW test steps have been collected
+- [ ] **(MANDATORY)** All NEW element HTML has been saved to `ElementsCollected.ts`
+- [ ] **(MANDATORY)** All NEW locators have been generated with `locatorSuggestion`
+- [ ] **(MANDATORY)** All NEW locators have been added to `locator_cache.json`
+- [ ] **(MANDATORY)** Investigation log documents complete flow for ALL NEW test steps
+- [ ] **(MANDATORY)** EXISTING components documented in `ReusabilityAnalysis.md` with justification
+- [ ] **(MANDATORY)** No NEW test steps remain uninvestigated or partially investigated
+
+---
+
+## 🔄 2.4 Proceed to Phase 3 ONLY When
+
+### **All Conditions Must Be Met**
+
+**Research Coverage**:
+- ✅ Research Completion Checklist shows 100% completion
+- ✅ All NEW test steps have corresponding investigation data
+- ✅ All EXISTING test steps have corresponding reusable components documented in Phase 0
+- ✅ All required NEW elements and locators are collected and stored
+- ✅ Investigation log confirms complete coverage of NEW components
+- ✅ `ReusabilityAnalysis.md` confirms complete coverage of EXISTING components
+
+**Verification Files Exist**:
+- ✅ `tests/Raw/Debug/ReusabilityAnalysis.md` exists and is complete
+- ✅ `tests/Raw/Debug/ElementsCollected.ts` exists (if NEW components exist)
+- ✅ `tests/Raw/Debug/InvestigationLog.md` exists (if NEW components exist)
+- ✅ `tests/Utils/locator_cache.json` updated with NEW locators (if NEW components exist)
+
+---
+
+## 📊 2.5 Complexity-Based Research Continuation (MANDATORY)
+
+### **If Complexity Prevents Completing All Research in One Session**
+
+**PROHIBITED**:
+- **(PROHIBITED)** DO NOT generate partial code - this is prohibited
+
+**REQUIRED ACTIONS**:
+- **(MANDATORY)** **Store current research state** in `tests/Raw/Debug/ResearchProgress.md`:
+  - List test steps completed (with investigation data for NEW components)
+  - List test steps using EXISTING components (documented in Phase 0)
+  - List test steps remaining (need investigation for NEW components)
+  - Document current checkpoint in test flow
+  - Note which NEW pages/elements still need research
+
+- **(MANDATORY)** **Continue research in next session**:
+  - Resume from documented checkpoint
+  - Continue page investigation for remaining NEW steps
+  - Collect missing NEW elements and generate missing NEW locators
+  - Update investigation files with new findings
+
+- **(MANDATORY)** **Repeat save-and-continue cycle** until 100% research completion achieved
+
+### **ResearchProgress.md Structure**
+
+```markdown
+# Research Progress Tracking
+
+## Current Status
+- Completion: 60%
+- Session: 2
+- Date: 2024-01-15
+
+## Completed Test Steps
+
+### Steps 1-5: Login Flow
+- **Status**: COMPLETE
+- **Type**: EXISTING components
+- **Documentation**: ReusabilityAnalysis.md
+- **Components**: LoginPage, LoginWorkflow (reused from Phase 0)
+
+### Steps 6-10: Navigation Flow
+- **Status**: COMPLETE
+- **Type**: NEW components
+- **Investigation**: InvestigationLog.md (lines 50-120)
+- **Elements Collected**: ElementsCollected.ts (items 1-8)
+- **Locators**: locator_cache.json (NavigationPage section)
+
+## Remaining Test Steps
+
+### Steps 11-15: Data Entry Flow
+- **Status**: PENDING
+- **Type**: NEW components (need investigation)
+- **Pages**: DataEntryPage, ValidationPage
+- **Elements Needed**: Input fields, submit buttons, validation messages
+- **Next Actions**: 
+  1. Navigate to DataEntryPage
+  2. Collect element HTML
+  3. Generate locators
+  4. Update locator_cache.json
+
+## Checkpoint
+- Current Position: After step 10 (Navigation complete)
+- Next Step: Begin step 11 (Data Entry page investigation)
+- Resume Point: Navigate to data entry form
+```
+
+---
+
+## ⛔ 2.6 Code Generation is BLOCKED Until
+
+### **All These Conditions Are Met**
+
+- ✅ ALL NEW test steps from description have been researched
+- ✅ ALL EXISTING test steps have reusable components documented in `ReusabilityAnalysis.md`
+- ✅ ALL required NEW investigation data has been collected and stored
+- ✅ Research Completion Checklist shows 100% completion (NEW + EXISTING coverage)
+- ✅ No test steps remain partially investigated
+- ✅ No test steps lack coverage (either NEW data OR EXISTING documentation)
+
+---
+
+## 🎯 Phase 2 Success Criteria
+
+### **Verification Complete**
+- ✅ **100% Coverage**: Every test step has either NEW investigation data OR EXISTING component documentation
+- ✅ **NEW Components**: All NEW components have complete research in ElementsCollected.ts and locator_cache.json
+- ✅ **EXISTING Components**: All EXISTING components documented in ReusabilityAnalysis.md with justification
+- ✅ **Checklist**: Research Completion Checklist 100% satisfied
+- ✅ **No Gaps**: Zero test steps without coverage
+- ✅ **Files Complete**: All required verification files exist and are complete
+
+### **Ready for Phase 3**
+- ✅ Research verification passed
+- ✅ Investigation log confirms complete coverage
+- ✅ Reusability analysis confirms EXISTING component usage
+- ✅ Code generation can safely proceed
+
+---
+
+## ➡️ Next Phase
+
+### **If Verification PASSES (100% Complete)**
+
+**Proceed to**: **[Phase 3 - Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)**
+
+**Entry Requirement**: Research Completion Checklist shows 100% completion
+
+**What Phase 3 Will Do**:
+- Generate Page Object classes (NEW only)
+- Generate Business Workflow classes (NEW only)
+- Generate Test Scenario files
+- Use EXISTING components without regeneration
+- Follow layered architecture
+- Apply code generation standards
+
+### **If Verification FAILS (Incomplete)**
+
+**Return to**: **[Phase 1 - Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+
+**Required Actions**:
+- Continue page investigation for missing NEW test steps
+- Collect missing element HTML
+- Generate missing locators
+- Update investigation files
+- Return to Phase 2 for re-verification
+- Repeat until 100% complete
+
+---
+
+## 🚨 Final Reminder
+
+> **This phase is a MANDATORY gate.**
+> 
+> **NO code generation is allowed until this phase verifies 100% research completion.**
+> 
+> **If you proceed to Phase 3 without 100% verification, you are violating the generation workflow and invalidating the entire process.**
+> 
+> **STOP. VERIFY. PROCEED ONLY WHEN 100% COMPLETE.**

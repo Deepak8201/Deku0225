@@ -1,0 +1,216 @@
+---
+alwaysApply: true
+---
+# Test Execution Requirements
+
+> **Purpose**: Defines Playwright execution parameters, success mandate, and browser verification standards.
+> Ensures consistent test execution across all scenarios.
+
+## 📋 Metadata
+- **ID**: `test_execution`
+- **Name**: Test Execution Requirements
+- **Type**: Execution Standards
+- **Scope**: Test execution phase
+
+---
+
+## 🎯 Execution Overview
+
+### **Playwright Execution**
+
+**Parameters (EXACT MATCH)**:
+- **(MANDATORY)** `--workers=1` - Single worker for consistent execution
+- **(MANDATORY)** `--headed` - Visible browser for research and verification
+- **(MANDATORY)** `--project=chromium` - Use Chromium browser
+
+**Complete Command**:
+```bash
+npx playwright test {TestName}Test.test.ts --workers=1 --headed --project=chromium
+```
+
+### **Execution Mode**
+- Use headed mode for research and verification
+- Monitor browser interactions during execution
+- Observe element location and interaction timing
+- Verify navigation and page transitions
+
+---
+
+## ✅ 100% Test Success Mandate
+
+### **Requirements (MANDATORY)**
+
+**Zero Failures**:
+- **(MANDATORY)** All test scenarios must pass - no exceptions
+- **(MANDATORY)** All test steps execute successfully
+- **(MANDATORY)** All assertions pass
+- **(MANDATORY)** No unexpected errors
+
+**Zero Skipped**:
+- **(MANDATORY)** No skipped tests allowed
+- **(MANDATORY)** All tests must execute completely
+- **(MANDATORY)** No conditional skips
+
+**Error Handling**:
+- Comprehensive error handling to prevent failures
+- Graceful degradation when possible
+- Clear error messages for debugging
+
+**Data Integrity**:
+- Ensure test data doesn't cause conflicts
+- Generate unique data per run using timestamps
+- Prevent duplicate entry issues
+
+---
+
+## 🔄 Retry Logic and Error Handling
+
+### **Retry Mechanisms**
+
+**For Flaky Elements**:
+- Implement retry logic for elements that may be temporarily unavailable
+- Use `waitFor()` with appropriate timeouts
+- Add multiple verification attempts if needed
+
+**For Navigation**:
+Reference: **[Phase 3 - Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)**
+- Retry navigation if page doesn't transition
+- Verify URL change after navigation actions
+- Add timeout with retry on failure
+
+**Pattern**:
+```typescript
+// Retry pattern for navigation
+try {
+    await this.waitForNavigation(/.*#targetPage.*/, { timeout: 30000 });
+} catch (error) {
+    // Retry once
+    await this.waitForTimeout(2000);
+    await this.clickNavigationButton();
+    await this.waitForNavigation(/.*#targetPage.*/, { timeout: 30000 });
+}
+```
+
+---
+
+## 🌐 Browser Verification Actions
+
+### **During Test Execution, Verify**:
+
+**Navigation**:
+- Navigate to target pages
+- Verify URLs match expected patterns
+- Confirm page loads completely (domcontentloaded)
+
+**Element Location**:
+- Locate and identify elements
+- Verify elements are visible and interactable
+- Confirm elements match expected descriptions
+
+**Interactions**:
+- Fill forms with generated test data
+- Click buttons and links
+- Select options from dropdowns
+- Check/uncheck checkboxes
+- Hover over elements when needed
+
+**Validation**:
+- Validate expected outcomes
+- Verify element states
+- Confirm data was submitted correctly
+- Check for success/error messages
+
+**Artifacts** (if configured):
+- Capture screenshots at key interaction points
+- Record video of test execution
+- Generate trace files for debugging
+
+**Console Monitoring**:
+- Monitor browser console for errors (automatically captured via ConsoleCapture)
+- Check for JavaScript errors (logged automatically)
+- Verify no unexpected warnings (captured in test artifacts)
+- **ConsoleCapture**: All console and network logs automatically captured when using `import { test, expect } from 'Engine/Shared/ConsoleCapture';`
+
+---
+
+## 📊 Execution Monitoring
+
+### **Real-Time Monitoring**
+
+**Visual Verification**:
+- Watch browser window during execution
+- Verify elements are located correctly
+- Confirm interactions occur as expected
+- Observe page transitions
+
+**Timing Verification**:
+- Verify page load times are reasonable
+- Confirm element waits are appropriate
+- Check navigation transitions
+
+**State Verification**:
+- Verify application state at each step
+- Confirm data persistence
+- Validate session management
+
+---
+
+## 🎯 Success Criteria
+
+### **Test Execution**
+- ✅ **Parameters**: Exact match (`--workers=1 --headed --project=chromium`)
+- ✅ **Mode**: Headed mode with visible browser
+- ✅ **Pass Rate**: 100% success (zero failures, zero skipped)
+- ✅ **All Steps**: Every test step executes successfully
+- ✅ **All Assertions**: Every assertion passes
+
+### **Browser Verification**
+- ✅ **Navigation**: All pages load successfully
+- ✅ **Elements**: All elements located and interacted with
+- ✅ **Forms**: All forms filled correctly
+- ✅ **Clicks**: All clicks executed successfully
+- ✅ **Validation**: All validations pass
+- ✅ **Console**: No unexpected errors
+
+### **Error Handling**
+- ✅ **Retry Logic**: Implemented for flaky scenarios
+- ✅ **Graceful Failure**: Clear error messages
+- ✅ **Data Integrity**: Unique test data prevents conflicts
+
+---
+
+## ⚠️ Failure Handling
+
+### **If Test Fails**
+
+**Immediate Actions**:
+1. Review test execution logs
+2. Identify failure point
+3. Check element locators
+4. Verify page navigation
+5. Review action completion
+
+**Analysis**:
+- Check if locator needs update
+- Verify page load verification
+- Review element availability waits
+- Check action completion verification
+- Review retry logic
+
+**Fix and Retry**:
+- Apply fixes to generated code
+- Re-execute test
+- Repeat until 100% pass rate achieved
+- Document issues and resolutions
+
+---
+
+## 🎯 Integration with Validation
+
+Reference: **[Phase 5 - Validation](mdc:Phase5_Validation.mdc)**
+
+This execution standard is enforced during Phase 5 validation where:
+- Tests are executed with exact parameters
+- 100% pass rate is verified
+- Browser verification is confirmed
+- Project structure compliance is checked

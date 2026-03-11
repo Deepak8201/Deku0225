@@ -1,0 +1,396 @@
+---
+alwaysApply: true
+---
+# Layered Architecture Design
+
+> **Purpose**: Defines layered architecture requirements and restrictions for test automation code.
+> Ensures proper separation of concerns and maintainable code structure.
+
+## 📋 Metadata
+- **ID**: `architecture_layered`
+- **Name**: Layered Architecture Design
+- **Type**: Architecture Pattern
+- **Scope**: All test automation code
+
+---
+
+## 🎯 Architecture Overview
+
+### **Layer Hierarchy**
+```
+Test Scenario Layer
+    ↓ (calls)
+Business Workflow Layer
+    ↓ (calls)
+Page Object Layer
+    ↓ (uses)
+AIElement Layer
+    ↓ (accesses)
+Locator Cache
+```
+
+---
+
+## 📊 Layer Responsibilities
+
+### **Test Scenario Layer** (`tests/TestScenario/`)
+
+**Responsibility**: High-level test flow orchestration
+
+**Allowed Actions**:
+- ✅ Call Business layer methods
+- ✅ Use `TestLogger.testStep()` for test-level logging
+- ✅ Use **[SettingsHelper](mdc:Phase4_TestGeneration.mdc)** for URLs/credentials
+- ✅ Initialize Business Workflow instances
+- ✅ Orchestrate test execution flow
+
+**PROHIBITED Actions**:
+- ❌ **NO direct locators** (CSS selectors, XPath, etc.)
+- ❌ **NO `this.page.locator()`, `this.page.click()`, `this.page.fill()`**
+- ❌ **NO direct Playwright page interactions**
+- ❌ **NO direct Page Object calls** (only Business layer)
+- ❌ **NO hardcoded URLs or credentials**
+
+---
+
+### **Business Workflow Layer** (`tests/Business/`)
+
+**Responsibility**: Domain logic orchestration
+
+**Allowed Actions**:
+- ✅ Call Page Object methods
+- ✅ Extend `AIPage` base class
+- ✅ Use `TestLogger.businessStep()` for business-level logging
+- ✅ Include business context (username, item name, etc.)
+- ✅ Orchestrate multi-page workflows
+- ✅ Apply Split + Merge pattern for method reusability
+
+**PROHIBITED Actions**:
+- ❌ **NO direct locators** (CSS selectors, XPath, etc.)
+- ❌ **NO `this.page.locator()` or direct Playwright API**
+- ❌ **NO cross-business calls** (Business classes are independent)
+- ❌ **NO direct page interactions**
+- ❌ **NO direct modification of existing methods** (use Split + Merge instead)
+
+**Business Layer Independence**:
+- Business classes MUST NOT call other business classes
+- Test scenarios orchestrate multiple business classes directly
+- Each business class handles own domain logic without dependencies
+
+**Method Reusability - Split + Merge Pattern**:
+- When existing workflow method needs partial reuse, apply Split + Merge pattern
+- Extract workflow steps into smaller public methods
+- Reconstruct original method using extracted steps
+- Create new workflow methods by composing extracted + new steps
+- See: **[Phase 0 - Reusability Analysis](mdc:Phase0_ReusabilityAnalysis.mdc)** for detailed examples
+
+---
+
+### **Page Object Layer** (`tests/Functional/`)
+
+**Responsibility**: UI interaction definitions
+
+**Allowed Actions**:
+- ✅ Extend `AIPage` base class
+- ✅ Use `AIElement` instances for ALL interactions
+- ✅ Use `TestLogger.pageStep()` for page-level logging
+- ✅ Initialize AIElement with cache keys
+- ✅ Define page-specific methods
+- ✅ Apply Split + Merge pattern for method reusability
+
+**PROHIBITED Actions**:
+- ❌ **NO direct locators** (CSS selectors, XPath, etc.)
+- ❌ **NO `this.page.locator()`, `this.page.click()`, `this.page.fill()`**
+- ❌ **NO direct Playwright page interactions**
+- ❌ **ALL element interactions MUST go through AIElement**
+- ❌ **NO direct modification of existing methods** (use Split + Merge instead)
+
+**Element Interaction Rules**:
+- NEVER use direct `this.page` methods
+- ALL interactions via AIElement instances
+- ALL locators retrieved from cache via AIElement
+- Each AIElement initialized: `new AIElement(this, 'cacheKey', 'Extended natural language description')`
+- Description should be detailed enough to identify element on page (e.g., 'Username input field in the login form', 'Submit button at the bottom of the registration form')
+
+**Method Reusability - Split + Merge Pattern**:
+- When existing method needs partial reuse, apply Split + Merge pattern
+- Extract atomic interactions into public methods
+- Reconstruct original method using extracted methods
+- Create new methods by composing extracted + new interactions
+- See: **[Phase 0 - Reusability Analysis](mdc:Phase0_ReusabilityAnalysis.mdc)** for detailed examples
+
+---
+
+### **AIElement Layer** (`Engine/Shared/AIElement.ts`)
+
+**Responsibility**: Element interaction execution
+
+**Allowed Actions**:
+- ✅ Resolve locators from cache
+- ✅ Execute element interactions (click, fill, hover, etc.)
+- ✅ Use `TestLogger.elementStep()` for element-level logging
+- ✅ Implement AI fallback for missing locators
+- ✅ Return element state/values
+
+**ONLY Place**:
+- **AIElement is the ONLY class that accesses locators from cache**
+- **AIElement is the ONLY class that interacts with Playwright locators directly**
+
+---
+
+### **Locator Cache** (`tests/Utils/locator_cache.json`)
+
+Reference: **[Locator Management](mdc:LocatorManagementSystem.mdc)**
+
+**Responsibility**: Centralized locator storage
+
+**Structure**:
+```json
+{
+  "PageName": {
+    "name": "Human Readable Page Name",
+    "url": "/page-path",
+    "description": "Page purpose",
+    "locators": {
+      "elementKey": {
+        "key": "elementKey",
+        "description": "Element description",
+        "locator": "playwright-locator"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🚫 Prohibited Patterns
+
+### **❌ Direct Locator Access in High-Level Code**
+
+```typescript
+// ❌ WRONG - Test Scenario with direct locators
+test('User login', async ({ page }) => {
+  await page.click('#loginButton');  // ❌ Direct locator
+  await page.fill('#username', 'user');  // ❌ Direct interaction
+});
+
+// ✅ CORRECT - Test Scenario calls Business layer
+test('User login', async ({ page }) => {
+  await TestLogger.testStep('Login to application', async () => {
+    await loginWorkflow.performLogin(baseUrl, username, password);
+  });
+});
+```
+
+### **❌ Direct Page Interactions in Business Layer**
+
+```typescript
+// ❌ WRONG - Business with direct page interactions
+export class LoginWorkflow extends AIPage {
+  async performLogin(username: string, password: string): Promise<void> {
+    await this.page.fill('#username', username);  // ❌ Direct interaction
+    await this.page.click('#loginBtn');  // ❌ Direct locator
+  }
+}
+
+// ✅ CORRECT - Business calls Page Object methods
+export class LoginWorkflow extends AIPage {
+  private loginPage: LoginPage;
+  
+  constructor(page: Page) {
+    super(page);
+    this.loginPage = new LoginPage(page);
+  }
+  
+  async performLogin(username: string, password: string): Promise<void> {
+    await TestLogger.businessStep(`Login with username: ${username}`, async () => {
+      await this.loginPage.login(username, password);
+    });
+  }
+}
+```
+
+### **❌ Direct Locators in Page Objects**
+
+```typescript
+// ❌ WRONG - Page Object with direct locators
+export class LoginPage extends AIPage {
+  async login(username: string, password: string): Promise<void> {
+    await this.page.fill('#username', username);  // ❌ Direct locator
+    await this.page.click('#loginBtn');  // ❌ Direct interaction
+  }
+}
+
+// ✅ CORRECT - Page Object uses AIElement
+export class LoginPage extends AIPage {
+  private usernameInput: AIElement;
+  private loginButton: AIElement;
+  
+    constructor(page: Page) {
+        super(page, 'LoginPage');
+        this.usernameInput = new AIElement(this, 'usernameInput', 'Username input field in the login form');
+        this.loginButton = new AIElement(this, 'loginButton', 'Login submit button at the bottom of the form');
+    }
+  
+  async login(username: string, password: string): Promise<void> {
+    await TestLogger.pageStep('Fill login credentials', async () => {
+      await this.usernameInput.fill(username);  // ✅ Via AIElement
+      await this.loginButton.click();  // ✅ Via AIElement
+    });
+  }
+}
+```
+
+---
+
+## ✅ Correct Architecture Pattern
+
+### **Complete Flow Example**
+
+```typescript
+// Test Scenario Layer - calls Business only
+test('User login test', async ({ page }) => {
+  TestLogger.reset();
+  
+ const baseUrl = SettingsHelper.getBaseUrl('systemName');
+ const credentials = SettingsHelper.getDefaultCredentials('systemName');
+ const loginWorkflow = new LoginWorkflow(page);
+  
+  await TestLogger.testStep('Login to application', async () => {
+    await loginWorkflow.performLogin(baseUrl, credentials.username, credentials.password);
+  });
+});
+
+// Business Workflow Layer - calls Page Objects only
+export class LoginWorkflow extends AIPage {
+  private loginPage: LoginPage;
+  
+  constructor(page: Page) {
+    super(page);
+    this.loginPage = new LoginPage(page);
+  }
+  
+  async performLogin(baseUrl: string, username: string, password: string): Promise<void> {
+    await TestLogger.businessStep(`Login with username: ${username}`, async () => {
+      await this.loginPage.navigateToLogin(baseUrl);
+      await this.loginPage.login(username, password);
+    });
+  }
+}
+
+// Page Object Layer - uses AIElement only
+export class LoginPage extends AIPage {
+  private usernameInput: AIElement;
+  private passwordInput: AIElement;
+  private loginButton: AIElement;
+  
+  constructor(page: Page) {
+    super(page, 'LoginPage');
+    this.usernameInput = new AIElement(this, 'usernameInput', 'Username input field in the login form');
+    this.passwordInput = new AIElement(this, 'passwordInput', 'Password input field in the login form');
+    this.loginButton = new AIElement(this, 'loginButton', 'Login submit button at the bottom of the form');
+  }
+  
+  async navigateToLogin(baseUrl: string): Promise<void> {
+    await TestLogger.pageStep('Navigate to login page', async () => {
+      await this.navigateTo(baseUrl);
+      await this.waitForPageLoad();
+    });
+  }
+  
+  async login(username: string, password: string): Promise<void> {
+    await TestLogger.pageStep('Fill login credentials', async () => {
+      await this.usernameInput.fill(username);  // AIElement handles cache lookup
+      await this.passwordInput.fill(password);  // AIElement handles cache lookup
+      await this.loginButton.click();  // AIElement handles cache lookup
+    });
+  }
+}
+
+// AIElement Layer - accesses cache and Playwright locators
+// (Implementation in Engine/Shared/AIElement.ts - already exists)
+```
+
+---
+
+## 🎨 Handling Dynamic Elements (MANDATORY)
+
+**Rule**: For elements identified by runtime data (names, IDs, dynamic text):
+- NEVER `this.page.locator()` with string interpolation
+- ALWAYS AIElement with `{param}` placeholder
+- Use context parameter with `LocatorContextType` enum
+
+**Import Required**:
+```typescript
+import { LocatorContextType } from 'Engine/Shared/types';
+```
+
+**Cache**:
+```json
+{"locator": "tr:has(strong:has-text(\"{param}\")) a.btn-outline-info i.fa-eye"}
+```
+
+**Page Object**:
+```typescript
+import { LocatorContextType } from 'Engine/Shared/types';
+
+private icon: AIElement;  // init in constructor
+
+// Using convenience method with context
+async click(name: string) { 
+  await this.icon.click({ type: LocatorContextType.Dynamic, param: name }); 
+}
+
+// Or using explicit locate() for multiple interactions
+async clickAndVerify(name: string) {
+  const element = this.icon.locate({ type: LocatorContextType.Dynamic, param: name });
+  await element.click();
+  const isVisible = await element.isVisible();
+}
+```
+
+**Available Patterns**:
+- Static: `element.click()`
+- Dynamic: `element.click({ type: LocatorContextType.Dynamic, param: value })`
+- Complex: `element.click({ type: LocatorContextType.WithinDynamicParent, parentParam: parent, childKey: child })`
+
+**See**: **[Locator Management System](mdc:LocatorManagementSystem.mdc)** - Parameterized Locators
+
+---
+
+## 🎯 Key Principles
+
+1. **Single Responsibility**: Each layer has one clear purpose
+2. **Dependency Direction**: Always call down the hierarchy, never up
+3. **Locator Isolation**: ONLY AIElement accesses locators
+4. **No Skipping**: Each layer calls only the layer directly below
+5. **Business Independence**: Business classes don't call each other
+
+---
+
+## ✅ Architecture Compliance Checklist
+
+- [ ] Test Scenarios ONLY call Business layer methods
+- [ ] Test Scenarios contain NO direct locators
+- [ ] Test Scenarios have NO direct Playwright page interactions
+- [ ] Business Workflows ONLY call Page Object methods
+- [ ] Business Workflows contain NO direct locators
+- [ ] Business Workflows have NO direct page interactions
+- [ ] Business Workflows have NO cross-business calls
+- [ ] Page Objects use AIElement for ALL interactions
+- [ ] Page Objects contain NO direct locators
+- [ ] Page Objects have NO direct `this.page` calls
+- [ ] AIElement is ONLY class accessing locators from cache
+- [ ] Proper call hierarchy maintained at all times
+
+---
+
+## 🎯 Success Criteria
+
+- ✅ **Proper Layering**: Test → Business → Page Objects → AIElement → Cache
+- ✅ **No Direct Locators**: Zero locators in high-level code
+- ✅ **No Direct Page Access**: Zero `this.page` calls in high-level code
+- ✅ **Single Responsibility**: Each layer focuses on its purpose
+- ✅ **Maintainability**: Clear separation of concerns
+- ✅ **Testability**: Each layer can be tested independently

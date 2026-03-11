@@ -1,0 +1,508 @@
+---
+alwaysApply: true
+---
+# Phase 3: Implementation Standards
+
+> **Purpose**: Define implementation patterns, base class usage, verification requirements, and best practices.
+> This phase establishes the technical standards for code generation.
+
+## 📋 Metadata
+- **ID**: `phase_3_implementation`
+- **Name**: Phase 3 - Implementation Standards
+- **Phase**: 3
+- **Previous Phase**: **[Phase 2 - Pre-Generation Verification](mdc:Phase2_PreGenerationVerification.mdc)** (GATE)
+- **Next Phase**: **[Phase 4 - Test Generation](mdc:Phase4_TestGeneration.mdc)**
+
+---
+
+## 🎯 Phase Objectives
+
+1. Define base class usage patterns (AIPage, AIElement)
+2. Establish hierarchical logging integration
+3. Detect table view compatibility for AITomsPage
+4. Define verification patterns (page load, element availability, action completion)
+5. Set up checkpoint management for complex generation
+
+---
+
+## 🏗️ 3.1 Base Class Usage (MANDATORY)
+
+### **AIPage Base Class**
+Reference: **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+
+**Requirements**:
+- **(MANDATORY)** All Page Object classes MUST extend `Engine/Shared/AIPage.ts`
+- **(MANDATORY)** All Business Workflow classes MUST extend `Engine/Shared/AIPage.ts`
+- **(MANDATORY)** Constructor must call `super(page, 'PageIdentifier')` with page identifier for cache lookup
+
+**Pattern**:
+```typescript
+import { AIPage } from 'Engine/Shared/AIPage';
+import { Page } from '@playwright/test';
+
+export class LoginPage extends AIPage {
+    constructor(page: Page) {
+        super(page, 'LoginPage'); // Page identifier for cache
+    }
+}
+```
+
+### **AIElement Usage**
+Reference: **[Locator Management](mdc:LocatorManagementSystem.mdc)**
+
+**Requirements**:
+- **(MANDATORY)** ALL element interactions MUST go through AIElement instances
+- **(MANDATORY)** NO direct `this.page.locator()`, `this.page.click()`, `this.page.fill()` calls
+- **(MANDATORY)** Each AIElement initialized with: `new AIElement(this, 'cacheKey', 'Extended natural language description')`
+- **(MANDATORY)** Description must be detailed enough to identify element on page (e.g., 'Username input field in the login form at the top', 'Submit button at the bottom of the registration form')
+
+**Pattern**:
+```typescript
+import { AIElement } from 'Engine/Shared/AIElement';
+
+export class LoginPage extends AIPage {
+    private usernameInput: AIElement;
+    private passwordInput: AIElement;
+    private loginButton: AIElement;
+
+    constructor(page: Page) {
+        super(page, 'LoginPage');
+        
+        // Use extended natural language descriptions to clearly identify elements
+        this.usernameInput = new AIElement(this, 'usernameInput', 'Username input field in the login form at the top');
+        this.passwordInput = new AIElement(this, 'passwordInput', 'Password input field in the login form below username');
+        this.loginButton = new AIElement(this, 'loginButton', 'Login submit button at the bottom of the login form');
+    }
+
+    async fillCredentials(username: string, password: string): Promise<void> {
+        await this.usernameInput.fill(username);  // ✅ Via AIElement
+        await this.passwordInput.fill(password);  // ✅ Via AIElement
+    }
+}
+```
+
+### **AIElement Methods Reference**
+
+**Interaction Methods**:
+- `click()`, `fill()`, `hover()`, `select()`, `check()`, `uncheck()`
+
+**Retrieval Methods**:
+- `getText()`, `getSelectedValue()`, `isVisible()`
+
+**Waiting Methods**:
+- `waitFor(options?, ctx?)`
+
+**File Upload Methods**:
+- `uploadFile(filePath, ctx?)` - Upload single file (supports all context types)
+- `getUploadedFiles()` - Get list of uploaded files
+- `clearUploadedFiles()` - Clear upload queue
+
+**Interaction with Context** (for dynamic/complex locators):
+All methods accept optional `LocatorContext` parameter:
+```typescript
+import { LocatorContextType } from 'Engine/Shared/types';
+
+// Static (default)
+await element.click();
+
+// Dynamic
+await element.click({ type: LocatorContextType.Dynamic, param: 'Router' });
+
+// Child within dynamic parent
+await element.click({ 
+  type: LocatorContextType.WithinDynamicParent, 
+  parentParam: 'Router', 
+  childKey: 'ipInput' 
+});
+```
+
+**Performance Optimization with locate()**:
+```typescript
+import { LocatorContextType } from 'Engine/Shared/types';
+
+// Resolve once, interact multiple times
+const bound = element.locate({ type: LocatorContextType.Dynamic, param: 'Router' });
+await bound.click();
+await bound.fill('192.168.1.1');
+const value = await bound.getInputValue();
+```
+
+---
+
+### **TestFileHelper - File Creation for Upload Testing**
+
+**Location**: `Engine/Shared/TestFileHelper.ts`
+
+**Two-Directory Architecture**:
+- `tests/TestData/Files/` - Stable, prepared test files (NOT cleaned up)
+- `tests/Raw/Files/` - Temporary/runtime files (cleaned up after tests)
+
+**Core Methods**:
+```typescript
+import { TestFileHelper } from 'Engine/Shared/TestFileHelper';
+
+// Find existing file (searches stable first, then temp)
+const filePath = TestFileHelper.getFileForUpload('prepared-data.csv');
+
+// Create text file (in temp directory)
+const textFile = await TestFileHelper.createTextFile('test.txt', 'Hello World');
+
+// Create JSON file
+const jsonFile = await TestFileHelper.createJsonFile('data.json', { key: 'value' });
+
+// Create CSV file
+const csvFile = await TestFileHelper.createCsvFile('data.csv', [['a', 'b']], ['Col1', 'Col2']);
+
+// Create file of specific size (for upload limit testing)
+const largeFile = await TestFileHelper.createFileOfSize('large.bin', TestFileHelper.SIZE.mb(50));
+
+// Create typed file with valid signature (PDF, PNG, JPG, GIF, ZIP, DOCX, XLSX)
+const pdfFile = await TestFileHelper.createTypedFile('doc.pdf', 'pdf', TestFileHelper.SIZE.mb(5));
+
+// Copy stable file to temp for modification
+const tempCopy = TestFileHelper.copyToTemp('template.json');
+
+// Stream support for large files
+const stream = TestFileHelper.getFileStream('large-file.bin');
+const savedFile = await TestFileHelper.createFileFromStream('downloaded.pdf', responseStream);
+
+// Cleanup temp files only (stable files preserved)
+await TestFileHelper.cleanupAllTestFiles();
+```
+
+**Size Helpers**:
+- `TestFileHelper.SIZE.KB` / `TestFileHelper.SIZE.MB` / `TestFileHelper.SIZE.GB`
+- `TestFileHelper.SIZE.kb(n)` / `TestFileHelper.SIZE.mb(n)` / `TestFileHelper.SIZE.gb(n)`
+
+**File Upload Example**:
+```typescript
+// In Page Object
+async uploadDocument(fileName: string): Promise<void> {
+  const filePath = await TestFileHelper.createTypedFile(fileName, 'pdf', TestFileHelper.SIZE.mb(1));
+  await this.fileInput.uploadFile(filePath);
+}
+
+// In Test cleanup
+await TestFileHelper.cleanupAllTestFiles();
+```
+
+---
+
+## 📊 3.2 Hierarchical Logging Integration (MANDATORY)
+
+### **Requirements by Layer**
+
+**Test Scenario Layer**:
+- **(MANDATORY)** Import `TestLogger` from `Engine/Shared/TestLogger`
+- **(MANDATORY)** Call `TestLogger.reset()` at test start
+- **(MANDATORY)** Wrap all test steps with `TestLogger.testStep()`
+- **(MANDATORY)** Use human-readable descriptions (e.g., `'Login to application'`)
+- **(MANDATORY)** NO `console.log` - use `TestLogger.info()`, `TestLogger.warn()`, `TestLogger.error()`
+
+**Business Workflow Layer**:
+- **(MANDATORY)** Import `TestLogger` from `Engine/Shared/TestLogger`
+- **(MANDATORY)** Wrap all business methods with `TestLogger.businessStep()`
+- **(MANDATORY)** Include relevant business context (username, item name, etc.)
+- **(MANDATORY)** NO technical details (locators, element IDs)
+
+**Page Objects Layer**:
+- **(MANDATORY)** Import `TestLogger` from `Engine/Shared/TestLogger`
+- **(MANDATORY)** Wrap all page methods with `TestLogger.pageStep()`
+- **(MANDATORY)** Describe WHAT is being done, not technical HOW
+- **(MANDATORY)** NO locators or CSS selectors in descriptions
+
+**Pattern Example**:
+```typescript
+import { TestLogger } from 'Engine/Shared/TestLogger';
+
+// Test Scenario
+test('User login', async ({ page }) => {
+  TestLogger.reset();
+  
+  await TestLogger.testStep('Login to application', async () => {
+    await loginWorkflow.performLogin(baseUrl, username, password);
+  });
+});
+
+// Business Workflow
+async performLogin(baseUrl: string, username: string, password: string): Promise<void> {
+  await TestLogger.businessStep(`Login with username: ${username}`, async () => {
+    await this.loginPage.navigateToLogin(baseUrl);
+    await this.loginPage.login(username, password);
+  });
+}
+
+// Page Object
+async login(username: string, password: string): Promise<void> {
+  await TestLogger.pageStep('Fill login credentials and submit', async () => {
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+    await this.loginButton.click();
+  });
+}
+```
+
+---
+
+## 🎯 3.3 Table View Detection (MANDATORY)
+
+### **Detection Process**
+
+**Step 1: Identify Table View**
+- Check if page contains table view with action controls row, header row, and data rows
+- Look for table structure with headers, rows, and data cells
+- Identify toolbar, filters, and pagination elements
+
+**Step 2: Compare with Reference Structure**
+- Compare page structure with examples in `Engine/Template/tleRaw/table_view/`
+- Check for similar CSS classes: `table.mainControl`, `tr.hoverable`, `td.itemCheckboxAlign`
+- Verify presence of filter controls, toolbar actions, and checkbox columns
+
+**Step 3: AITomsPage Compatibility Decision**
+- ✅ **Use AITomsPage** if table structure is similar to reference examples
+- ❌ **Use AIPage** if table structure is significantly different
+
+### **AITomsPage Usage**
+
+**When to Use**:
+- Table has similar structure to reference examples
+- Contains standard toolbar, headers, rows with checkboxes
+- Has filter controls at column headers
+- Standard TOMS table pattern
+
+**Configuration Pattern**:
+```typescript
+import { AITomsPage } from 'Engine/Shared/AITomsPage';
+
+// Default configuration
+export class TasksPage extends AITomsPage {
+    constructor(page: Page) {
+        super(page); // Use default table selectors
+    }
+}
+
+// Custom configuration
+export class CustomTablePage extends AITomsPage {
+    constructor(page: Page) {
+        super(page, {
+            tableSelector: 'table.customTable',
+            rowSelector: 'tr.customRow',
+            checkboxColumnSelector: 'td.select input[type="checkbox"]'
+        });
+    }
+}
+```
+
+---
+
+## ✅ 3.4 Verification Patterns (MANDATORY)
+
+### **Page Load Verification (MANDATORY)**
+
+**Requirements**:
+- **(MANDATORY)** Add page load verification BEFORE attempting any element interactions
+- **(MANDATORY)** Use `domcontentloaded` instead of `networkidle` for page load state verification
+- **(MANDATORY)** Verify page URL matches expected pattern before interacting with elements
+
+**Pattern**:
+```typescript
+// Step 1: Verify page loaded using AIPage method
+await this.waitForPageLoad();
+
+// Step 2: Verify URL (if applicable)
+const currentUrl = this.getCurrentUrl();
+if (!currentUrl.includes('#expectedPage')) {
+    await this.waitForTimeout(2000);
+}
+```
+
+### **Element Availability Verification (MANDATORY)**
+
+**Requirements**:
+- **(MANDATORY)** Verify element is available and visible BEFORE attempting interaction
+- **(MANDATORY)** Use `AIElement.waitFor()` with appropriate timeout before click/fill/select operations
+
+**Pattern**:
+```typescript
+// Wait for element to be available
+await this.elementName.waitFor({ timeout: 3000 });
+
+// Then interact with element
+await this.elementName.click();
+```
+
+### **Action Completion Verification (MANDATORY)**
+
+**Requirements**:
+- **(MANDATORY)** Verify action completed successfully BEFORE proceeding to next step
+- **(MANDATORY)** Add explicit verification after critical actions (navigation, form submission, dialog actions)
+- **(MANDATORY)** Use appropriate verification methods:
+  - URL change verification for navigation actions (use `waitForNavigation()` from AIPage in Business layer)
+  - Element state verification for UI updates (use `AIElement.waitFor()` in Page Objects)
+  - Data verification for form submissions (use `AIElement.getSelectedValue()`, `AIElement.getText()`)
+
+**Pattern for Business Workflow**:
+```typescript
+await TestLogger.businessStep('Navigate to next page', async () => {
+    // Perform action (Page Object method)
+    await this.somePage.clickNextButton();
+    
+    // Verify action completed - URL changed using AIPage method
+    try {
+        await this.waitForNavigation(/.*#nextPage.*/, { timeout: 30000 });
+        TestLogger.info('✓ Navigation completed');
+    } catch (error) {
+        const currentUrl = this.getCurrentUrl();
+        TestLogger.warn(`Navigation timeout, current URL: ${currentUrl}`);
+        // Graceful handling if needed
+        await this.somePage.waitForTimeout(2000);
+    }
+});
+```
+
+**Pattern for Page Object**:
+```typescript
+await TestLogger.pageStep('Click next button', async () => {
+    // Perform action
+    await this.nextButton.click();
+    TestLogger.info('✓ Next button clicked');
+    
+    // Verify element state changed
+    await this.successMessage.waitFor({ timeout: 5000 });
+    TestLogger.info('✓ Success message appeared');
+});
+```
+
+### **Navigation Retry Logic (RECOMMENDED)**
+
+**Pattern for Business Workflow**:
+```typescript
+await TestLogger.businessStep('Navigate to target page', async () => {
+    // Click Next (Page Object method)
+    await this.currentPage.clickNextButton();
+    
+    // Verify navigation using AIPage method
+    try {
+        await this.waitForNavigation(/.*#targetPage.*/, { timeout: 30000 });
+        TestLogger.info('✓ Navigation completed');
+    } catch (error) {
+        const currentUrl = this.getCurrentUrl();
+        TestLogger.warn(`Navigation timeout, current URL: ${currentUrl}`);
+        
+        // If still on source page, retry
+        if (currentUrl.includes('#sourcePage')) {
+            TestLogger.warn('Still on source page - retrying navigation...');
+            await this.currentPage.waitForTimeout(2000);
+            await this.currentPage.clickNextButton();
+            
+            TestLogger.info('Retrying navigation verification...');
+            await this.waitForNavigation(/.*#targetPage.*/, { timeout: 30000 });
+            TestLogger.info('✓ Navigation completed after retry');
+        }
+    }
+});
+```
+
+---
+
+## 🎨 3.5 Additional Implementation Standards
+
+### **Cache-First Approach**
+Reference: **[Locator Management](mdc:LocatorManagementSystem.mdc)**
+
+**Priority Order**: Cache → AI fallback → Error handling
+
+### **Natural Language**
+- All element descriptions in plain English
+- Match descriptions with test description language
+
+### **Random Test Data**
+- Generate unique data per run using timestamps
+- Prevent duplicate entry conflicts
+- Include creation timestamps for uniqueness
+
+---
+
+## 📋 3.6 Complex Generation Handling
+
+Reference: **[Investigation Tracking](mdc:InvestigationTracking.mdc)**
+
+### **Checkpoint Management**
+
+**When to Create Checkpoint**:
+- Generation process becomes too complex to complete in one go
+- Multiple pages or workflows need to be researched
+- Risk of losing context or making errors due to complexity
+
+**Checkpoint File**: `tests/Raw/Debug/GenerationCheckpoint.md`
+
+**Checkpoint Content**:
+- What has been completed so far
+- Current progress point in test description
+- What remains to be done
+- Any blockers or decisions pending
+- References to completed files and next steps
+
+**Workflow**:
+1. Create checkpoint documenting current state
+2. Complete generation and testing up to checkpoint
+3. Verify checkpoint generation works correctly
+4. Resume from checkpoint for remaining work
+5. Update checkpoint as needed for next iteration
+
+### **Complete Investigation Requirement (MANDATORY)**
+- **(MANDATORY)** MUST continue investigation until ALL test steps are researched - no partial investigation allowed
+- **(MANDATORY)** If complexity requires stopping to store findings, you MUST continue investigation in page research mode
+- **(MANDATORY)** **Save and continue as many times as required** - repeat the cycle until every step in test description is fully investigated
+- **(MANDATORY)** **Investigation is NOT complete until**: All pages visited, all elements collected, all locators generated for EVERY step in test description
+- **(MANDATORY)** **No code generation until investigation is 100% complete** for all test steps
+
+**Example Workflow**:
+- Research steps 1-5 → Save findings → Continue research for steps 6-10 → Save findings → Continue research for steps 11-15 → Complete
+- Each cycle: Navigate pages → Collect elements → Generate locators → Store in Debug folder → Continue to next steps
+
+---
+
+## ✅ Phase 3 Completion Checklist
+
+- [ ] **(MANDATORY)** Base class usage patterns defined (AIPage, AIElement)
+- [ ] **(MANDATORY)** Hierarchical logging integration planned for all layers
+- [ ] **(MANDATORY)** TestLogger import and usage defined for Test Scenario, Business, Page Objects
+- [ ] **(MANDATORY)** Table view detection process understood
+- [ ] **(MANDATORY)** AITomsPage compatibility assessed (if table views present)
+- [ ] **(MANDATORY)** Page load verification pattern defined (domcontentloaded)
+- [ ] **(MANDATORY)** Element availability verification pattern defined (waitFor)
+- [ ] **(MANDATORY)** Action completion verification pattern defined
+- [ ] **(MANDATORY)** Navigation retry logic understood (if applicable)
+- [ ] **(MANDATORY)** Cache-first approach confirmed
+- [ ] **(MANDATORY)** Natural language element descriptions planned
+- [ ] **(MANDATORY)** Random test data generation strategy defined
+- [ ] **(MANDATORY)** Checkpoint management strategy established (if complex generation)
+- [ ] **(MANDATORY)** Complete investigation requirement understood
+
+---
+
+## 🎯 Success Criteria
+
+- ✅ **Base Classes**: AIPage and AIElement usage patterns clearly defined
+- ✅ **Logging**: Hierarchical logging integration planned for all layers
+- ✅ **Table Views**: AITomsPage compatibility assessed and decided
+- ✅ **Verification**: All three verification patterns (page load, element, action) defined
+- ✅ **Retry Logic**: Navigation retry logic understood and planned
+- ✅ **Checkpoints**: Checkpoint management strategy established for complex scenarios
+- ✅ **Investigation**: Complete investigation requirement acknowledged
+
+---
+
+## ➡️ Next Phase
+
+**Proceed to**: **[Phase 4 - Test Generation](mdc:Phase4_TestGeneration.mdc)**
+
+**Entry Requirement**: Phase 3 completion checklist 100% satisfied
+
+**What Phase 4 Will Do**:
+- Verify 100% research completion (CRITICAL GATE)
+- Cross-reference test steps with investigation findings
+- Validate NEW components researched AND EXISTING components documented
+- Complete Research Completion Checklist
+- BLOCK code generation if research incomplete
