@@ -20,9 +20,19 @@ This template provides a complete AI-enhanced test automation framework with:
 
 ---
 
-## 🚀 Initial Setup After Copying
+## 🚀 Installation
 
-### Step 1: Install Dependencies and Browsers
+### Step 1: Clone the repository with submodules
+
+```bash
+# Clone with submodules (recommended)
+git clone --recurse-submodules https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/atp3-tests-template.git
+
+# Or if already cloned without submodules:
+git submodule update --init --recursive
+```
+
+### Step 2: Install Dependencies and Browsers
 
 ```bash
 # Install Node.js packages
@@ -32,7 +42,7 @@ npm install
 npx playwright install
 ```
 
-### Step 2: Add MCP Server (Required for Browser Automation)
+### Step 3: Add MCP Server (Required for Browser Automation)
 
 1. Open Cursor Settings
 2. Got to 'Tools & MCP' tab
@@ -55,7 +65,7 @@ npx playwright install
 6. Enable "Playwright" MCP Server
 7. Check that MCP Server enabled witout errors
 
-### Step 3: Configure Environment Settings for Local execution (ATP_ENVGENE_CONFIGURATION environment variable)
+### Step 4: Configure Environment Settings for Local execution (ATP_ENVGENE_CONFIGURATION environment variable)
 
 1. Create Environment configuration file in `tests/Settings/EnvironmentSettings` folder.
 - **Structure**: systems[].{systemName}.connections[].{connectionType}.{parameters}
@@ -66,6 +76,36 @@ npx playwright install
 **ATP_ENVGENE_CONFIGURATION** environment variable with specified configuration will be created localy.
 
 When running tests via Pipeline **ATP_ENVGENE_CONFIGURATION** environment variable will be created by **EnvGen** according to selected environment in job.
+
+## 📦 Submodules
+
+This project uses Git submodules for shared components:
+
+| Submodule | Path | Description |
+|-----------|------|-------------|
+| core-engine | `Engine/Shared` | Core framework (AIPage, AIElement, TestLogger, etc.) |
+| core-prompts | `.cursor/prompts/core-prompts` | Cursor AI core prompts for test generation |
+| core-rules | `.cursor/rules/core-rules` | Cursor AI core rules for test generation |
+
+### Update submodules to latest version
+
+```bash
+# Update all submodules to latest commit from their remote
+git submodule update --remote
+
+# Update specific submodule
+git submodule update --remote .cursor/rules/core-rules
+
+# After updating, commit the changes
+git .cursor/rules/core-rules
+git commit -m "Update submodules to latest version"
+```
+
+### Check submodule status
+
+```bash
+git submodule status
+```
 
 ## 📁 Project Structure
 
