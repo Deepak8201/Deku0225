@@ -42,7 +42,7 @@
     "@types/pg": "^8.10.9",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "allure-playwright": "^3.4.5",
+    "allure-playwright": "^3.6.0",
     "eslint": "^8.0.0",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.0",
