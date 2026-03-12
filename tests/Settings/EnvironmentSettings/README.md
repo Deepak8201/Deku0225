@@ -18,7 +18,7 @@ This folder contains configuration and scripts for the **ATP_ENVGENE_CONFIGURATI
     {
       "<systemName>": {
         "connections": [
-          { "<connectionType>": { ... } }
+          { "<connectionType>": { "<paramName>": "<value>", ... } }
         ]
       }
     }
@@ -32,6 +32,7 @@ This folder contains configuration and scripts for the **ATP_ENVGENE_CONFIGURATI
 | System | `<systemName>` | Unique identifier of the system (e.g. `CSRD`, `public-gateway`). |
 | System | `connections` | Array of connection objects. |
 | Connection | `<connectionType>` | Identifier of the connection (e.g. `HTTP`, `DB`, `SSH`). |
+| Parameters | `<paramName>` | Connection-specific keys (e.g. `url`, `username`, `password` for HTTP; `host`, `port`, `database` for DB). |
 
 ---
 
