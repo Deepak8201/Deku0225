@@ -72,6 +72,7 @@ npx playwright install
 - **Example**: tests\Settings\EnvironmentSettings\envTemplateExample.json
 2. Update `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script with created configuration file name.
 3. Run `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script using Terminal
+4. **Restart Cursor** to ensure the environment variable is loaded
 
 **ATP_ENVGENE_CONFIGURATION** environment variable with specified configuration will be created localy.
 
@@ -97,7 +98,7 @@ git submodule update --remote
 git submodule update --remote .cursor/rules/core-rules
 
 # After updating, commit the changes
-git .cursor/rules/core-rules
+git add .cursor/rules/core-rules
 git commit -m "Update submodules to latest version"
 ```
 
