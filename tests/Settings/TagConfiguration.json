@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "validation": {
+    "enabled": true,
+    "strictMode": true,
+    "failOnMissingMandatory": true,
+    "warnOnUnregisteredExtensible": true
+  },
+  "categories": {
+    "suite": {
+      "type": "fixed",
+      "values": ["smoke", "regression", "full", "sanity"],
+      "default": "regression",
+      "mandatory": true,
+      "allowMultiple": true,
+      "description": "Test execution suite classification"
+    },
+    "priority": {
+      "type": "fixed",
+      "values": ["critical", "high", "medium", "low"],
+      "default": "medium",
+      "mandatory": true,
+      "allowMultiple": false,
+      "description": "Business priority level"
+    },
+    "type": {
+      "type": "fixed",
+      "values": ["e2e", "api", "integration", "ui", "unit"],
+      "default": "e2e",
+      "mandatory": true,
+      "allowMultiple": false,
+      "description": "Test type classification"
+    },
+    "dataImpact": {
+      "type": "fixed",
+      "values": ["readonly", "mutating"],
+      "default": "mutating",
+      "mandatory": true,
+      "allowMultiple": false,
+      "description": "Whether test modifies application data"
+    },
+    "environment": {
+      "type": "fixed",
+      "values": ["dev", "staging", "production", "all"],
+      "default": "all",
+      "mandatory": false,
+      "allowMultiple": true,
+      "description": "Target execution environment"
+    },
+    "stability": {
+      "type": "fixed",
+      "values": ["stable", "flaky", "wip", "deprecated"],
+      "default": "stable",
+      "mandatory": false,
+      "allowMultiple": false,
+      "description": "Test reliability status"
+    },
+    "speed": {
+      "type": "fixed",
+      "values": ["fast", "medium", "slow"],
+      "default": "medium",
+      "mandatory": false,
+      "allowMultiple": false,
+      "description": "Expected execution time category"
+    },
+    "feature": {
+      "type": "extensible",
+      "values": [],
+      "default": null,
+      "mandatory": false,
+      "allowMultiple": true,
+      "description": "Feature area (defined during test generation)"
+    },
+    "component": {
+      "type": "extensible",
+      "values": [],
+      "default": null,
+      "mandatory": false,
+      "allowMultiple": true,
+      "description": "UI or system component (defined during test generation)"
+    },
+    "team": {
+      "type": "extensible",
+      "values": [],
+      "default": null,
+      "mandatory": false,
+      "allowMultiple": false,
+      "description": "Owning team (defined during test generation)"
+    }
+  }
+}

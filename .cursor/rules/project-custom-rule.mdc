@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+# Project custom rule
+-- put here your additional instructions to be considered for test generation process

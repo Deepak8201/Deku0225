@@ -1,0 +1,254 @@
+---
+alwaysApply: true
+---
+# Reporting Requirements
+
+> **Purpose**: Defines test report generation and storage standards.
+> Ensures proper report location and format without web hosting.
+
+## 📋 Metadata
+- **ID**: `reporting_requirements`
+- **Name**: Reporting Requirements
+- **Type**: Reporting Standards
+- **Scope**: Test reporting
+
+---
+
+## 🎯 Reporting Overview
+
+### **File-Based Reports ONLY**
+
+**Core Principle**:
+- **(MANDATORY)** **NO hosting**: Never start processes to host report pages - absolute prohibition
+- **(MANDATORY)** **NO web server**: No report web server hosting
+- **(MANDATORY)** Reports as files only
+
+---
+
+## 📁 Report Location Standards
+
+### **Exact Paths (MANDATORY)**
+
+**Primary Location**:
+- **(MANDATORY)** All reports MUST be in `tests/Raw/Report/`
+
+**Test Results**:
+- **(MANDATORY)** Test results MUST be in `tests/Raw/Report/test-results/`
+
+**HTML Reports**:
+- **(MANDATORY)** HTML reports MUST be in `tests/Raw/Report/html-reports/`
+
+**JSON Reports**:
+- **(MANDATORY)** JSON reports MUST be in `tests/Raw/Report/test-results.json`
+
+### **Format Standard**
+- **(MANDATORY)** Report file format: `{reportName}_yyyyMMdd-HHmmss`
+- Include timestamp for unique identification
+- Use descriptive report names
+
+---
+
+## ⚙️ Playwright Configuration (MANDATORY)
+
+### **Required Configuration in playwright.config.ts**
+
+```typescript
+export default defineConfig({
+  // Test results directory
+  outputDir: './tests/Raw/Report/test-results',
+  
+  // Reporters configuration
+  reporter: [
+    ['html', { 
+      outputFolder: './tests/Raw/Report/html-reports', 
+      open: 'never'  // MANDATORY: Never auto-open reports
+    }],
+    ['json', { 
+      outputFile: './tests/Raw/Report/test-results.json' 
+    }],
+    ['list']  // Console output during execution
+  ],
+  
+  // Other configuration...
+});
+```
+
+### **Configuration Requirements**
+- **(MANDATORY)** `outputDir` MUST point to `./tests/Raw/Report/test-results`
+- **(MANDATORY)** HTML reporter `outputFolder` MUST point to `./tests/Raw/Report/html-reports`
+- **(MANDATORY)** HTML reporter `open` MUST be `'never'` (no auto-open)
+- **(MANDATORY)** JSON reporter `outputFile` MUST point to `./tests/Raw/Report/test-results.json`
+
+---
+
+## 🚫 Root Folder Cleanliness (MANDATORY)
+
+### **Prohibited in Root Folder**
+
+**NEVER Allow**:
+- ❌ `test-results/` folder in root
+- ❌ `playwright-report/` folder in root
+- ❌ Any test execution artifacts in root
+- ❌ Any temporary report files in root
+
+**Required**:
+- ✅ Root folder MUST remain clean
+- ✅ All reports in `tests/Raw/Report/`
+- ✅ No test execution artifacts in root
+
+### **Verification**
+Before completing test generation, verify:
+- [ ] Root folder contains NO `test-results/` folder
+- [ ] Root folder contains NO `playwright-report/` folder
+- [ ] Root folder contains NO unexpected folders
+- [ ] All reports in correct location: `tests/Raw/Report/`
+
+---
+
+## 📊 Generated Report Types
+
+### **Test Execution Results**
+**Location**: `tests/Raw/Report/test-results/`
+
+**Contents**:
+- Test execution artifacts
+- Failed test screenshots
+- Test traces
+- Retry attempts data
+
+### **HTML Reports**
+**Location**: `tests/Raw/Report/html-reports/`
+
+**Contents**:
+- Interactive HTML test report
+- Test execution timeline
+- Failed test details
+- Screenshots and videos
+- Filterable test results
+
+### **JSON Reports**
+**Location**: `tests/Raw/Report/test-results.json`
+
+**Contents**:
+- Machine-readable test results
+- Test suite summary
+- Individual test results
+- Timing information
+- Error details
+
+### **Additional Artifacts** (if configured)
+
+**Screenshots**:
+- Location: Within `test-results/`
+- Captured on failure or explicit capture
+- PNG format
+
+**Videos**:
+- Location: Within `test-results/`
+- Full test execution recording
+- WebM format
+
+**Traces**:
+- Location: Within `test-results/`
+- Detailed execution traces
+- For debugging failed tests
+
+---
+
+## 🎯 Report Access
+
+### **Viewing Reports**
+
+**HTML Reports**:
+- Navigate to `tests/Raw/Report/html-reports/`
+- Open `index.html` in browser
+- **NO web server required** - static HTML files
+
+**JSON Reports**:
+- Open `tests/Raw/Report/test-results.json`
+- Parse with JSON tools or scripts
+- Use for CI/CD integration
+
+**Test Results**:
+- Navigate to `tests/Raw/Report/test-results/`
+- Review individual test artifacts
+- Check screenshots and traces
+
+---
+
+## 🚨 Prohibited Actions
+
+### **NEVER Do These**
+
+**Web Hosting**:
+- ❌ Do NOT start `npx playwright show-report`
+- ❌ Do NOT start any report web server
+- ❌ Do NOT configure auto-open for reports
+- ❌ Do NOT host reports on any port
+
+**Root Folder**:
+- ❌ Do NOT allow reports in root folder
+- ❌ Do NOT create `test-results/` in root
+- ❌ Do NOT create `playwright-report/` in root
+- ❌ Do NOT scatter artifacts in root
+
+---
+
+## ✅ Compliance Checklist
+
+### **Configuration**
+- [ ] `playwright.config.ts` specifies `outputDir: './tests/Raw/Report/test-results'`
+- [ ] HTML reporter configured with `outputFolder: './tests/Raw/Report/html-reports'`
+- [ ] HTML reporter configured with `open: 'never'`
+- [ ] JSON reporter configured with `outputFile: './tests/Raw/Report/test-results.json'`
+
+### **Location**
+- [ ] All reports in `tests/Raw/Report/` directory
+- [ ] Test results in `tests/Raw/Report/test-results/`
+- [ ] HTML reports in `tests/Raw/Report/html-reports/`
+- [ ] JSON report at `tests/Raw/Report/test-results.json`
+
+### **Root Folder**
+- [ ] Root folder is clean (no test results)
+- [ ] NO `test-results/` folder in root
+- [ ] NO `playwright-report/` folder in root
+- [ ] NO test execution artifacts in root
+
+### **Hosting**
+- [ ] NO web server started for reports
+- [ ] NO `npx playwright show-report` executed
+- [ ] Reports accessible as static files only
+
+---
+
+## 🎯 Success Criteria
+
+### **Report Generation**
+- ✅ **All Reports Generated**: HTML, JSON, test results
+- ✅ **Correct Location**: All in `tests/Raw/Report/`
+- ✅ **No Hosting**: Reports as static files only
+- ✅ **Root Clean**: No artifacts in root folder
+
+### **Configuration**
+- ✅ **Playwright Config**: Properly configured with correct paths
+- ✅ **Output Dir**: Points to `tests/Raw/Report/test-results`
+- ✅ **Reporters**: HTML and JSON configured correctly
+- ✅ **No Auto-Open**: HTML reporter set to never open
+
+### **Access**
+- ✅ **HTML Reports**: Viewable by opening index.html
+- ✅ **JSON Reports**: Parseable by tools and scripts
+- ✅ **Test Results**: Accessible for review and debugging
+- ✅ **No Server Needed**: All reports work as static files
+
+---
+
+## 🎯 Integration with Validation
+
+Reference: **[Phase 5 - Validation](mdc:Phase5_Validation.mdc)**
+
+During Phase 5 validation:
+- Report location is verified
+- Root folder cleanliness is confirmed
+- Playwright configuration is checked
+- No web hosting is verified

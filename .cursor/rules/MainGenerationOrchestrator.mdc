@@ -1,0 +1,344 @@
+---
+alwaysApply: true
+---
+# 🎯 Main Test Generation Orchestrator
+
+> **Purpose**: Drives the complete test generation workflow through all phases in strict sequence.
+> Ensures each phase completes 100% before proceeding to the next phase.
+
+## 📋 Metadata
+- **ID**: `main_generation_orchestrator`
+- **Name**: Main Test Generation Orchestrator
+- **Type**: Workflow Controller
+- **Scope**: End-to-end test generation process
+
+---
+
+## 🚨 CRITICAL WORKFLOW RULE
+
+> **🔴 ABSOLUTE REQUIREMENT**:
+> 
+> **IT IS STRICTLY FORBIDDEN TO SKIP PHASES OR PROCEED TO CODE GENERATION BEFORE RESEARCH IS 100% COMPLETE.**
+> 
+> - Each phase MUST be 100% complete before moving to next phase
+> - Research completion = ALL NEW components researched + ALL EXISTING components documented
+> - NO partial phase completion allowed
+> - NO skipping verification gates
+> - **This is a hard stop. Violation invalidates the entire generation process.**
+
+---
+
+## 📋 Generation Workflow Overview
+
+### **Target Application**
+Application URL from `ATP_ENVGENE_CONFIGURATION` environment variable by System name.
+
+### **Primary Output**
+Executable test scenarios in `tests/TestScenario/` directory
+
+### **Workflow Phases**
+1. **Phase 0**: Test Analysis & Reusability Check
+2. **Phase 1**: Locator Research (NEW components only)
+3. **Phase 2**: Pre-Generation Verification (CRITICAL GATE)
+4. **Phase 3**: Implementation
+5. **Phase 4**: Test Generation
+6. **Phase 5**: Validation
+
+---
+
+## 🔄 Phase Execution Sequence
+
+### **Phase 0: Test Analysis and Reusability Check**
+**[Detailed Instructions](mdc:Phase0_ReusabilityAnalysis.mdc)**
+
+**Requirements**:
+- **(MANDATORY)** Complete test description analysis
+- **(MANDATORY)** Check existing Page Objects, Business Workflows, and Locators
+- **(MANDATORY)** Document reusability analysis in `tests/Raw/Debug/ReusabilityAnalysis.md`
+- **(MANDATORY)** Define investigation scope (NEW vs EXISTING components)
+- **(MANDATORY)** Establish safe extension/modification protocol
+
+**Output**:
+- `ReusabilityAnalysis.md` with complete component analysis
+- Clear list of components to reuse vs create new
+- Investigation scope definition for Phase 1
+
+**Completion Criteria**:
+- [ ] All test steps mapped to layers (Test Scenario → Business → Page Objects)
+- [ ] All existing components identified and documented
+- [ ] Reusability decisions justified
+- [ ] Investigation scope clearly defined
+
+**Next Phase**: Proceed to Phase 1 ONLY when Phase 0 is 100% complete
+
+---
+
+### **Phase 1: Locator Research**
+**[Detailed Instructions](mdc:Phase1_LocatorResearch.mdc)**
+
+**Requirements**:
+- **(MANDATORY)** Capture page state using Playwright snapshots (NEW components only)
+- **(MANDATORY)** Collect element HTML using `browser_evaluate` (NEW components only)
+- **(MANDATORY)** Generate locators from real page data (NEW components only)
+- **(MANDATORY)** Save to `tests/Raw/Debug/ElementsCollected.ts`
+- **(MANDATORY)** Document investigation sequence
+
+**Skip Conditions**:
+- SKIP for EXISTING components identified in Phase 0
+- Reuse existing locators from `tests/Utils/locator_cache.json`
+
+**Output**:
+- `ElementsCollected.ts` with all NEW element HTML
+- Investigation sequence documentation
+- NEW entries for `locator_cache.json`
+
+**Completion Criteria**:
+- [ ] ALL NEW interactive elements collected
+- [ ] ALL NEW locators generated with `locatorSuggestion`
+- [ ] Investigation log documents complete flow
+- [ ] EXISTING components documented as reusable
+
+**Next Phase**: Proceed to Phase 2 ONLY when Phase 1 is 100% complete
+
+---
+
+### **Phase 2: Pre-Generation Verification (CRITICAL GATE)**
+**[Detailed Instructions](mdc:Phase2_PreGenerationVerification.mdc)**
+
+> **🛑 CRITICAL CHECKPOINT**: This is a MANDATORY gate. Code generation is ABSOLUTELY PROHIBITED until this phase passes 100%.
+
+**Requirements**:
+- **(MANDATORY)** Verify 100% research completion
+- **(MANDATORY)** Cross-reference test steps with investigation findings
+- **(MANDATORY)** Verify EVERY test step has either:
+  - NEW investigation data in `ElementsCollected.ts`/`locator_cache.json`, OR
+  - EXISTING reusable component in `ReusabilityAnalysis.md`
+- **(MANDATORY)** Complete Research Completion Checklist
+
+**Prohibition**:
+If research is NOT 100% complete, you are **ABSOLUTELY PROHIBITED** from:
+- Generating ANY Page Object code
+- Generating ANY Business Workflow code
+- Generating ANY Test Scenario code
+- Creating ANY test-related files
+- Moving to Phase 3
+
+**ONLY ALLOWED ACTION if incomplete**: Return to Phase 1 and continue investigation
+
+**Completion Criteria**:
+- [ ] Every test step from description analyzed
+- [ ] All test steps mapped to NEW components (researched) or EXISTING components (documented)
+- [ ] All required NEW pages investigated
+- [ ] All NEW interactive elements collected
+- [ ] All NEW locators generated and cached
+- [ ] Investigation log complete for ALL NEW components
+- [ ] EXISTING components fully documented in `ReusabilityAnalysis.md`
+- [ ] No NEW test steps remain uninvestigated
+
+**Next Phase**: Proceed to Phase 3 ONLY when checklist shows 100% completion
+
+---
+
+### **Phase 3: Implementation**
+**[Detailed Instructions](mdc:Phase3_ImplementationStandards.mdc)**
+
+**Requirements**:
+- Use base classes: AIPage, AIElement (see **[ArchitectureLayeredDesign](mdc:ArchitectureLayeredDesign.mdc)**)
+- Follow hierarchical logging (TestLogger at all layers)
+- Detect table views: AITomsPage compatibility (see **[Phase3_ImplementationStandards](mdc:Phase3_ImplementationStandards.mdc)**)
+- Apply **[Locator Management](mdc:LocatorManagementSystem.mdc)** patterns
+- Implement verification patterns (page load, element availability, action completion)
+
+**Output**:
+- Implementation patterns documented
+- Checkpoint files if complexity requires (in `tests/Raw/Debug/`)
+
+**Completion Criteria**:
+- [ ] Base class usage planned
+- [ ] Logging integration defined
+- [ ] Table view compatibility assessed
+- [ ] Verification patterns identified
+
+**Next Phase**: Proceed to Phase 4 (Test Generation)
+
+---
+
+### **Phase 4: Test Generation**
+**[Detailed Instructions](mdc:Phase4_TestGeneration.mdc)**
+
+> **🛑 ENTRY REQUIREMENT**: This phase is STRICTLY FORBIDDEN unless Phase 2 verification confirms 100% research completion.
+
+**Requirements**:
+- One test per file (NO exceptions)
+- Complete coverage (100% of test description)
+- Review stored investigation sequence before generation
+- Generate in `tests/TestScenario/`
+- Follow **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+- Use **[SettingsHelper](mdc:Phase4_TestGeneration.mdc)** for URLs/credentials
+
+**Output**:
+- Test scenario files in `tests/TestScenario/`
+- Page Object files in `tests/Functional/` (NEW only)
+- Business Workflow files in `tests/Business/` (NEW only)
+- Updated `locator_cache.json` with NEW locators
+
+**Completion Criteria**:
+- [ ] Test scenario implements 100% of test description
+- [ ] One test per file
+- [ ] Proper layered architecture
+- [ ] No hardcoded URLs/credentials
+- [ ] All generated files follow code generation standards (TypeScript, imports, naming)
+- [ ] All files comply with project structure rules
+
+**Next Phase**: Proceed to Phase 5 for validation
+
+---
+
+### **Phase 5: Validation**
+**[Detailed Instructions](mdc:Phase5_Validation.mdc)**
+
+**Requirements**:
+- **(MANDATORY)** Regression testing if classes were modified
+- **(MANDATORY)** TypeScript compilation check: `npx tsc --noEmit` (zero errors required)
+- **(MANDATORY)** Execute new test with parameters: `--workers=1 --headed --project=chromium`
+- **(MANDATORY)** Achieve 100% pass rate (zero failures, zero skipped)
+- Regenerate if failed
+
+**Output**:
+- Test execution reports in `tests/Raw/Report/`
+- Regression test results (if applicable)
+
+**Completion Criteria**:
+- [ ] All regression tests pass (if classes modified)
+- [ ] TypeScript compilation: zero errors
+- [ ] All function signatures match
+- [ ] New test passes at 100%
+- [ ] Project structure compliance verified
+- [ ] No extra folders/files in root directory
+
+**Generation Complete**: ALL phases finished successfully
+
+---
+
+## 🏗️ Architecture Overview
+
+### **Foundation Rules**
+All generated code must follow:
+- Code generation standards: TypeScript format, absolute imports, naming conventions, code quality
+- Project structure: File placement rules, access control, folder organization
+
+### **Architecture Patterns**
+All test automation code must follow:
+- **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)** - Test → Business → Page Objects → AIElement → Cache
+- **[Locator Management](mdc:LocatorManagementSystem.mdc)** - Cache-first approach, AIElement-only access
+- Hierarchical logging: TestLogger at all layers (testStep, businessStep, pageStep)
+
+### **Application-Specific**
+When applicable:
+- Table view detection and AITomsPage usage (see **[Phase3_ImplementationStandards](mdc:Phase3_ImplementationStandards.mdc)**)
+
+---
+
+## 📊 Progress Tracking
+
+### **Debug Folder Organization**
+Reference: **[Investigation Tracking](mdc:InvestigationTracking.mdc)**
+
+- `tests/Raw/Debug/ReusabilityAnalysis.md` - Phase 0 output
+- `tests/Raw/Debug/ElementsCollected.ts` - Phase 1 output (NEW components)
+- `tests/Raw/Debug/InvestigationLog.md` - Phase 1 documentation
+- `tests/Raw/Debug/ResearchProgress.md` - Multi-session research tracking
+- `tests/Raw/Debug/GenerationCheckpoint.md` - Complexity checkpoint management
+
+### **Checkpoint Management**
+If generation becomes too complex:
+1. Store current progress in `GenerationCheckpoint.md`
+2. Complete generation up to checkpoint
+3. Verify checkpoint generation works
+4. Resume from checkpoint for remaining work
+
+---
+
+## ✅ Success Criteria
+
+### **Complete Framework Generated**
+- ✅ Phase 0: Reusability analysis complete and documented
+- ✅ Phase 1: NEW components researched, EXISTING components documented
+- ✅ Phase 2: 100% research verification passed (GATE)
+- ✅ Phase 3: Implementation patterns applied
+- ✅ Phase 4: Test code generated
+- ✅ Phase 5: 100% pass rate achieved
+
+### **Architecture Compliance**
+- ✅ **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)** properly implemented
+- ✅ **[Locator Management](mdc:LocatorManagementSystem.mdc)** cache-first approach
+- ✅ Hierarchical logging at all layers (testStep, businessStep, pageStep, elementStep)
+- ✅ No direct locators in high-level code
+- ✅ No direct Playwright API in Test Scenario/Business/Page Objects
+
+### **Code Quality**
+- ✅ Code generation standards compliance (TypeScript, imports, naming)
+- ✅ Project structure compliance (correct file placement, organization)
+- ✅ TypeScript compilation without errors
+- ✅ All imports resolve correctly
+- ✅ Proper naming conventions throughout
+
+### **Execution**
+- ✅ **[Test Execution Requirements](mdc:TestExecutionRequirements.mdc)** met
+- ✅ 100% pass rate (zero failures, zero skipped)
+- ✅ Tests execute in visible browser
+- ✅ **[Reporting Requirements](mdc:ReportingRequirements.mdc)** satisfied
+
+---
+
+## 🎯 Expected Final State
+
+**Immediate Execution Capability**:
+- Framework operational without OpenAI API key
+- Pre-populated cache provides instant element access
+- Random data generation prevents conflicts
+- Complete workflow tests execute successfully at 100% pass rate
+
+**AI Enhancement Features**:
+- Optional AI for advanced scenarios
+- Self-healing tests when UI changes
+- Intelligent locator generation for new elements
+
+**Maintainability**:
+- Natural language element descriptions
+- Modular, reusable page objects
+- Comprehensive error handling and logging
+- Clear separation of concerns
+
+**Result**: Production-ready AI-driven test automation framework combining cache reliability with AI intelligence for robust, maintainable, high-performance testing capabilities.
+
+---
+
+## 📚 Quick Reference
+
+### **Start Generation**
+1. Review this orchestrator for workflow overview
+2. Begin with **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)**
+3. Follow phases sequentially - NO skipping
+
+### **During Generation**
+- Reference phase-specific rules as needed
+- Document progress in Debug folder
+- Verify completion criteria for each phase before proceeding
+
+### **Phase-Specific Rules**
+- Phase 0: **[Reusability Analysis](mdc:Phase0_ReusabilityAnalysis.mdc)**
+- Phase 1: **[Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+- Phase 2: **[Pre-Generation Verification](mdc:Phase2_PreGenerationVerification.mdc)** (GATE)
+- Phase 3: **[Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)**
+- Phase 4: **[Test Generation](mdc:Phase4_TestGeneration.mdc)**
+- Phase 5: **[Validation](mdc:Phase5_Validation.mdc)**
+
+### **Architecture Rules**
+- **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+- **[Locator Management](mdc:LocatorManagementSystem.mdc)**
+- Hierarchical logging standards (TestLogger usage)
+
+### **Foundation Rules**
+- Code generation standards (TypeScript, imports, naming)
+- Project structure rules (file placement, organization)

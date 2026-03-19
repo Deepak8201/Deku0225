@@ -1,0 +1,546 @@
+---
+alwaysApply: true
+---
+# Phase 4: Test Generation
+
+> **Purpose**: Final test code generation - create Page Objects, Business Workflows, and Test Scenarios.
+> This phase is STRICTLY FORBIDDEN to start unless **[Phase 2](mdc:Phase2_PreGenerationVerification.mdc)** verification confirms 100% research completion.
+
+## 📋 Metadata
+- **ID**: `phase_4_test_generation`
+- **Name**: Phase 4 - Test Generation
+- **Phase**: 4
+- **Previous Phase**: **[Phase 3 - Implementation Standards](mdc:Phase3_ImplementationStandards.mdc)**
+- **Next Phase**: **[Phase 5 - Validation](mdc:Phase5_Validation.mdc)**
+
+---
+
+## 🛑 ENTRY REQUIREMENT
+
+> **CRITICAL**: This phase is STRICTLY FORBIDDEN to start unless **[Phase 2](mdc:Phase2_PreGenerationVerification.mdc)** verification confirms 100% research completion.
+> 
+> If you attempt to start this phase without 100% research completion, you are violating the generation workflow.
+> 
+> **STOP and return to Phase 1 immediately.**
+
+---
+
+## 🎯 Phase Objectives
+
+1. Generate Page Object classes (NEW components only)
+2. Generate Business Workflow classes (NEW components only)
+3. Generate Test Scenario files with tagging
+4. Update locator_cache.json with NEW locators
+5. Update TestTagsMapping.json with test entry
+6. Apply code generation standards and layered architecture
+7. Use SettingsHelper for URLs and credentials (NO hardcoding)
+8. Use TagHelper.taggedTest() for test definition (NO manual tags)
+
+---
+
+## 📁 4.1 File Generation Standards (MANDATORY)
+
+### **Test Scenario Scripts** (`tests/TestScenario/`)
+
+**Requirements**:
+- **(MANDATORY)** **One test per file**: Exactly ONE test per scenario script - no exceptions
+- **(MANDATORY)** **Complete coverage**: Implement ALL steps from test description - no partial implementations
+- **(MANDATORY)** **Verify against stored information**: Before generating test script, review stored page investigation sequence and findings
+- **(MANDATORY)** **Self-verification**: Use stored information to verify you follow the right flow and use correct controls
+- **(MANDATORY)** **Target directory**: Generate in `tests/TestScenario/`
+- **(MANDATORY)** **File naming**: Use descriptive names like `{TestName}Test.test.ts`
+
+**Layered Architecture Requirements**:
+- **(MANDATORY)** Test scenario files MUST NOT contain direct locators (CSS selectors, XPath, etc.)
+- **(MANDATORY)** Test scenario files MUST NOT contain `this.page.locator()`, `this.page.click()`, `this.page.fill()` or any direct Playwright page interactions
+- **(MANDATORY)** Test scenario files MUST ONLY call Business layer methods
+
+**ConsoleCapture Integration (MANDATORY)**:
+- **(MANDATORY)** ConsoleCapture provides automatic browser console and network logging capabilities
+- **(MANDATORY)** Console and network logs are automatically captured for enhanced debugging
+- **Note**: ConsoleCapture is integrated via TagHelper - browser logging capabilities remain available
+
+**TagHelper Integration (MANDATORY)**:
+Reference: **[Tagging Standards](mdc:TaggingStandards.mdc)**
+
+- **(MANDATORY)** **Use TagHelper.taggedTest()**: ALL tests MUST use `TagHelper.taggedTest()` wrapper
+- **(MANDATORY)** **Import TagHelper**: `import { TagHelper } from 'Engine/Shared/TagHelper';`
+- **(MANDATORY)** **NO manual tag annotations**: Tags come ONLY from TestTagsMapping.json
+- **(MANDATORY)** **testId constant**: Include immutable testId constant at top of test file
+- **(MANDATORY)** **testId format**: `TC_XXX_vYYY_DescriptiveName` (e.g., `TC_001_v001_CreateSchoolWithMandatoryFields`)
+- **Purpose**: TagHelper loads tags from TestTagsMapping.json and applies them automatically
+
+**Hierarchical Logging**:
+- **(MANDATORY)** Import `TestLogger` from `Engine/Shared/TestLogger`
+- **(MANDATORY)** Call `TestLogger.reset()` at test start
+- **(MANDATORY)** Wrap all test steps with `TestLogger.testStep()`
+- **(MANDATORY)** Use human-readable descriptions (e.g., `'Login to application'`)
+- **(MANDATORY)** NO `console.log` - use `TestLogger.info()`, `TestLogger.warn()`, `TestLogger.error()`
+
+**SettingsHelper Usage (MANDATORY)**:
+- **(MANDATORY)** **NEVER hardcode URLs** in test scenario files
+- **(MANDATORY)** **NEVER hardcode credentials** in test scenario files
+- **(MANDATORY)** **ALWAYS use** `SettingsHelper.getBaseUrl(systemName)` for application URL
+- **(MANDATORY)** **ALWAYS use** `SettingsHelper.getDefaultCredentials(systemName)` for login credentials
+- **(MANDATORY)** **Import SettingsHelper**: `import { SettingsHelper } from 'Engine/Shared/SettingsHelper';`
+- **(MANDATORY)** **Configuration source**: ATP_ENVGENE_CONFIGURATION environment variable
+  - Structure: `systems[].{systemName}.connections[].{connectionType}.{param}`
+  - **systemName parameter is REQUIRED** for all SettingsHelper methods
+
+**Test Data Generation (MANDATORY)**:
+- **(MANDATORY)** **NEVER hardcode test data** in test scenario files
+- **(MANDATORY)** **Generate test data dynamically** during test execution (in-memory, no persistence)
+- **(MANDATORY)** **Location**: Place data generator classes in `tests/TestData/` directory
+- **(MANDATORY)** **No file operations**: Data generator MUST NOT save/load files - pure in-memory generation
+- **(MANDATORY)** **Direct usage**: Generated data passed directly to test without file system operations
+- **(MANDATORY)** **Pattern-based generation**: Generate random or pattern-based data for entity fields
+- **(MANDATORY)** **Unique identifiers**: Include timestamps or random values to ensure uniqueness across test runs
+
+**Data Generator Structure**:
+```typescript
+// tests/TestData/{Entity}DataGenerator.ts
+export class EntityDataGenerator {
+    /**
+     * Generate random entity data
+     * Returns data object directly - no file operations
+     */
+    static generateEntityData(): EntityData {
+        const timestamp = Date.now();
+        
+        // Define data pools for randomization
+        const names = ['Value1', 'Value2', 'Value3'];
+        const types = ['Type1', 'Type2', 'Type3'];
+        
+        // Generate random selections
+        const randomName = names[Math.floor(Math.random() * names.length)] || 'Default';
+        const randomType = types[Math.floor(Math.random() * types.length)] || 'Default';
+        
+        return {
+            name: `${randomName} ${timestamp}`,
+            type: randomType,
+            timestamp: timestamp
+            // Add fields as needed for entity
+        };
+    }
+}
+
+export interface EntityData {
+    name: string;
+    type: string;
+    timestamp: number;
+    // Define entity fields
+}
+```
+
+**Test Data Usage Pattern**:
+```typescript
+import { EntityDataGenerator } from 'tests/TestData/EntityDataGenerator';
+
+// Generate test data dynamically (in-memory)
+const testData = EntityDataGenerator.generateEntityData();
+
+TestLogger.info(`Test data generated: ${testData.name}`);
+
+// Use generated data directly in test
+await workflow.createEntity(testData.name, testData.type);
+```
+
+**Complete Test Scenario Pattern (with TagHelper)**:
+```typescript
+import { TagHelper } from 'Engine/Shared/TagHelper';
+import { TestLogger } from 'Engine/Shared/TestLogger';
+import { SettingsHelper } from 'Engine/Shared/SettingsHelper';
+import { EntityDataGenerator } from 'tests/TestData/EntityDataGenerator';
+import { EntityWorkflow } from 'tests/Business/EntityWorkflow';
+
+/**
+ * Test ID constant - IMMUTABLE once generated
+ * Maps to entry in tests/Utils/TestTagsMapping.json
+ */
+const TEST_ID = 'TC_001_v001_CreateEntityWithMandatoryFields';
+
+/**
+ * Test using TagHelper.taggedTest wrapper
+ * Tags are loaded from TestTagsMapping.json automatically
+ * NO manual tag annotations allowed in this file
+ */
+TagHelper.taggedTest(TEST_ID, async ({ page }) => {
+  TestLogger.reset();
+  
+  // Get configuration from SettingsHelper (systemName required)
+  const baseUrl = SettingsHelper.getBaseUrl('systemName');
+  const credentials = SettingsHelper.getDefaultCredentials('systemName');
+  
+  // Generate test data dynamically (in-memory, no file operations)
+  const testData = EntityDataGenerator.generateEntityData();
+  
+  TestLogger.info(`Test data generated: ${testData.name}`);
+  TestLogger.info(`  - Type: ${testData.type}`);
+  
+  // Initialize workflows
+  const entityWorkflow = new EntityWorkflow(page);
+  
+  // Test steps - call business methods only (NO direct page interactions)
+  await TestLogger.testStep('Login to application', async () => {
+    await entityWorkflow.login(baseUrl, credentials.username, credentials.password);
+  });
+  
+  await TestLogger.testStep('Create entity with generated data', async () => {
+    await entityWorkflow.createEntity(testData.name, testData.type);
+  });
+  
+  await TestLogger.testStep('Verify entity created', async () => {
+    await entityWorkflow.verifyEntityExists(testData.name);
+  });
+});
+```
+
+---
+
+## 🎭 4.2 Page Object Generation (NEW COMPONENTS ONLY)
+
+Reference: **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+
+### **Generate Page Objects for NEW Components**
+
+**Source Information**:
+- Use **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)** `ReusabilityAnalysis.md` to identify which Page Objects to CREATE
+- Use **[Phase 1](mdc:Phase1_LocatorResearch.mdc)** `ElementsCollected.ts` for element definitions
+- Use `locator_cache.json` for locator references
+
+**DO NOT Generate**:
+- SKIP Page Objects marked as "EXISTING" in `ReusabilityAnalysis.md`
+- Reuse existing Page Objects without modification (unless extension planned in Phase 0)
+
+**Requirements**:
+- **(MANDATORY)** Extend `Engine/Shared/AIPage.ts` base class
+- **(MANDATORY)** Use AIElement for ALL element interactions
+- **(MANDATORY)** NO direct `this.page.locator()`, `this.page.click()`, `this.page.fill()` calls
+- **(MANDATORY)** Initialize AIElement instances with cache keys matching `locator_cache.json`
+- **(MANDATORY)** Wrap all methods with `TestLogger.pageStep()`
+- **(MANDATORY)** Use human-readable descriptions (NO locators/selectors in method names)
+
+**Table View Pages**:
+- If page has table view matching reference examples, extend `AITomsPage` instead of `AIPage`
+- Use default or custom table configuration
+- Store table configuration in `locator_cache.json`
+
+**Example Pattern**:
+```typescript
+import { Page } from '@playwright/test';
+import { AIElement } from 'Engine/Shared/AIElement';
+import { AIPage } from 'Engine/Shared/AIPage';
+import { TestLogger } from 'Engine/Shared/TestLogger';
+
+export class DashboardPage extends AIPage {
+    private menuButton: AIElement;
+    private profileLink: AIElement;
+    private logoutButton: AIElement;
+
+    constructor(page: Page) {
+        super(page, 'DashboardPage');
+        
+        // Use extended natural language descriptions to clearly identify elements
+        this.menuButton = new AIElement(this, 'menuButton', 'Main navigation menu button in the top left corner');
+        this.profileLink = new AIElement(this, 'profileLink', 'User profile link in the top right navigation bar');
+        this.logoutButton = new AIElement(this, 'logoutButton', 'Logout button in the user dropdown menu');
+    }
+
+    async navigateToDashboard(baseUrl: string): Promise<void> {
+        await TestLogger.pageStep('Navigate to dashboard', async () => {
+            await this.navigateTo(`${baseUrl}/#dashboard`);
+            await this.waitForPageLoad();
+            TestLogger.info('Dashboard loaded');
+        });
+    }
+
+    async clickMenu(): Promise<void> {
+        await TestLogger.pageStep('Click menu button', async () => {
+            await this.menuButton.waitFor({ timeout: 3000 });
+            await this.menuButton.click();
+            TestLogger.info('Menu opened');
+        });
+    }
+}
+
+export default DashboardPage;
+```
+
+---
+
+## 💼 4.3 Business Workflow Generation (NEW COMPONENTS ONLY)
+
+### **Generate Business Workflows for NEW Components**
+
+**Source Information**:
+- Use **[Phase 0](mdc:Phase0_ReusabilityAnalysis.mdc)** `ReusabilityAnalysis.md` to identify which Business Workflows to CREATE
+- Business flow architecture should be determined during Phase 0 reusability analysis
+
+**DO NOT Generate**:
+- SKIP Business Workflows marked as "EXISTING" in `ReusabilityAnalysis.md`
+- Reuse existing Business Workflows without modification (unless extension planned in Phase 0)
+
+**Requirements**:
+- **(MANDATORY)** Extend `Engine/Shared/AIPage.ts` base class
+- **(MANDATORY)** Call Page Object methods (NO direct page interactions)
+- **(MANDATORY)** NO direct locators - ONLY call Page Object methods
+- **(MANDATORY)** Wrap all methods with `TestLogger.businessStep()`
+- **(MANDATORY)** Include relevant business context (username, item name, etc.)
+- **(MANDATORY)** Business classes are independent - NO cross-business calls
+
+**Business Flow Tags**:
+- If test description contains tags `[[BS123 START]]...[[BS123 FINISH]]`, create separate Business Workflow class
+- Use tag identifier in class name: `BS123_UserRegistrationFlow`
+- Each business flow handles only steps within its tag boundaries
+
+**Example Pattern**:
+```typescript
+import { Page } from '@playwright/test';
+import { AIPage } from 'Engine/Shared/AIPage';
+import { TestLogger } from 'Engine/Shared/TestLogger';
+import { DashboardPage } from 'tests/Functional/DashboardPage';
+
+export class DashboardNavigationWorkflow extends AIPage {
+    private dashboardPage: DashboardPage;
+
+    constructor(page: Page) {
+        super(page);
+        this.dashboardPage = new DashboardPage(page);
+    }
+
+    async navigateAndOpenMenu(baseUrl: string): Promise<void> {
+        await TestLogger.businessStep('Navigate to dashboard and open menu', async () => {
+            await this.dashboardPage.navigateToDashboard(baseUrl);
+            await this.dashboardPage.clickMenu();
+            TestLogger.info('Dashboard menu accessed');
+        });
+    }
+}
+
+export default DashboardNavigationWorkflow;
+```
+
+---
+
+## 🏷️ 4.4 Test Tagging (MANDATORY)
+
+Reference: **[Tagging Standards](mdc:TaggingStandards.mdc)**
+
+### **TestId Generation**
+
+**Format**: `TC_XXX_vYYY_DescriptiveName`
+
+| Part | Description | Example |
+|------|-------------|---------|
+| `TC_` | Prefix (Test Case) | `TC_` |
+| `XXX` | Sequential number (3 digits) | `001`, `042` |
+| `_v` | Version separator | `_v` |
+| `YYY` | Version number (default `001`) | `001`, `002` |
+| `_` | Separator | `_` |
+| `DescriptiveName` | PascalCase name | `CreateSchoolWithMandatoryFields` |
+
+**Requirements**:
+- **(MANDATORY)** Read existing `tests/Utils/TestTagsMapping.json` to find highest sequential number
+- **(MANDATORY)** Increment by 1 for new test
+- **(MANDATORY)** Use version `001` by default (new version only if user explicitly requests)
+- **(MANDATORY)** Generate PascalCase descriptive name from test purpose
+
+### **TestTagsMapping.json Entry**
+
+**Location**: `tests/Utils/TestTagsMapping.json`
+
+**(MANDATORY)** Create entry for each new test:
+
+```json
+{
+  "TC_001_v001_CreateSchoolWithMandatoryFields": {
+    "testId": "TC_001_v001_CreateSchoolWithMandatoryFields",
+    "testFile": "CreateSchoolTest.test.ts",
+    "description": "Create a new school entity by filling all mandatory fields and verify the school is successfully saved and appears in the listing",
+    "tags": {
+      "suite": ["smoke", "regression"],
+      "priority": "critical",
+      "type": "e2e",
+      "dataImpact": "mutating",
+      "environment": "all",
+      "stability": "stable",
+      "speed": "medium",
+      "feature": ["school-management"],
+      "component": ["school-form"],
+      "team": "core-platform"
+    },
+    "createdAt": "2026-01-12T10:00:00Z",
+    "lastModified": "2026-01-12T10:00:00Z"
+  }
+}
+```
+
+### **Mandatory Tags (MUST assign)**
+
+| Tag | Values | Selection Criteria |
+|-----|--------|-------------------|
+| **suite** | `smoke`, `regression`, `full`, `sanity` | Test importance/frequency |
+| **priority** | `critical`, `high`, `medium`, `low` | Business impact if fails |
+| **type** | `e2e`, `api`, `integration`, `ui`, `unit` | Test scope/approach |
+| **dataImpact** | `readonly`, `mutating` | Whether test modifies data |
+
+### **Extensible Tags (feature, component, team)**
+
+- **(MANDATORY)** Check existing values in `tests/Settings/TagConfiguration.json`
+- **(MANDATORY)** REUSE existing value if semantically matching
+- **(MANDATORY)** ADD new value only if genuinely different concept
+- **(MANDATORY)** Update TagConfiguration.json when adding new extensible values
+
+### **Test Description Requirements**
+
+- **(MANDATORY)** Description must be comprehensive (not short/vague)
+- **(MANDATORY)** Description should explain test purpose and scope clearly
+- **(MANDATORY)** Description should be sufficient to understand intent without reading code
+- **(PROHIBITED)** Short descriptions like "Create school" or "Test login"
+
+**Good Example**:
+> "Create a new school entity by filling all mandatory fields (name, address, type) and verify the school is successfully saved and appears in the school listing with correct data"
+
+---
+
+## 📦 4.5 Locator Cache Updates (NEW COMPONENTS ONLY)
+
+**Location**: `tests/Utils/locator_cache.json`
+
+**Requirements**:
+- **(MANDATORY)** Add NEW page entries with locators from `ElementsCollected.ts`
+- **(MANDATORY)** Use `locatorSuggestion` field directly as `locator` value
+- **(MANDATORY)** DO NOT modify EXISTING page entries (reuse as-is)
+
+**Structure**:
+```json
+{
+  "DashboardPage": {
+    "name": "Dashboard Page",
+    "url": "/#dashboard",
+    "description": "Main dashboard page",
+    "locators": {
+      "menuButton": {
+        "key": "menuButton",
+        "description": "Menu button",
+        "locator": "button:has-text('Menu')"
+      },
+      "profileLink": {
+        "key": "profileLink",
+        "description": "Profile link",
+        "locator": "a:has-text('Profile')"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🎨 4.6 Code Quality Requirements
+
+### **MANDATORY Standards**
+- TypeScript format with `.ts` extension
+- Absolute import paths from project root (NO `../` or `./`)
+- Proper type annotations for all elements
+- JSDoc comments for public methods
+- Error handling where appropriate
+- Naming conventions: PascalCase for classes, camelCase for functions
+- Default export for each file
+
+### **Architecture Compliance**
+- Follow **[Layered Architecture](mdc:ArchitectureLayeredDesign.mdc)**
+- Proper call hierarchy: Test Scenario → Business → Page Objects → AIElement → Locator Cache
+- Each layer has single responsibility
+- No direct locator access except through AIElement
+
+---
+
+## ✅ Phase 4 Completion Checklist
+
+### Test Scenario
+- [ ] **(MANDATORY)** Test scenario implements 100% of test description
+- [ ] **(MANDATORY)** One test per file (NO multiple tests)
+- [ ] **(MANDATORY)** Test scenario ONLY calls Business layer methods (proper layered architecture)
+- [ ] **(MANDATORY)** Test scenario uses SettingsHelper for URLs and credentials (NO hardcoding)
+- [ ] **(MANDATORY)** Test data generated dynamically using data generator (NO hardcoded test data)
+- [ ] **(MANDATORY)** Data generator located in `tests/TestData/` directory
+- [ ] **(MANDATORY)** Data generator uses in-memory generation (NO file save/load operations)
+
+### Tagging (Reference: **[Tagging Standards](mdc:TaggingStandards.mdc)**)
+- [ ] **(MANDATORY)** Test uses `TagHelper.taggedTest()` wrapper (NO manual tag annotations)
+- [ ] **(MANDATORY)** testId constant defined at top of test file
+- [ ] **(MANDATORY)** testId format: `TC_XXX_vYYY_DescriptiveName`
+- [ ] **(MANDATORY)** TestTagsMapping.json entry created with all mandatory tags
+- [ ] **(MANDATORY)** Mandatory tags assigned: suite, priority, type, dataImpact
+- [ ] **(MANDATORY)** Test description is comprehensive (not short/vague)
+- [ ] **(MANDATORY)** Existing extensible tag values reused when semantically matching
+- [ ] **(MANDATORY)** TagConfiguration.json updated if new extensible values added
+
+### Page Objects & Business Workflows
+- [ ] **(MANDATORY)** All NEW Page Objects generated (EXISTING ones reused)
+- [ ] **(MANDATORY)** All NEW Business Workflows generated (EXISTING ones reused)
+- [ ] **(MANDATORY)** All Page Objects extend AIPage and use AIElement
+- [ ] **(MANDATORY)** All Business Workflows extend AIPage and call Page Object methods
+- [ ] **(MANDATORY)** NO direct `this.page` interactions in any generated files
+- [ ] **(MANDATORY)** NO direct locators in Test Scenario, Business, or Page Object files
+- [ ] **(MANDATORY)** ALL locators accessed ONLY through AIElement class
+
+### Logging & Quality
+- [ ] **(MANDATORY)** TestLogger integration in all layers (testStep, businessStep, pageStep)
+- [ ] **(MANDATORY)** TestLogger.reset() called at test start
+- [ ] **(MANDATORY)** Human-readable descriptions used (no technical details at high levels)
+- [ ] **(MANDATORY)** locator_cache.json updated with NEW locators
+- [ ] **(MANDATORY)** All generated files follow code generation standards (TypeScript, imports, naming)
+- [ ] **(MANDATORY)** All files comply with project structure rules
+- [ ] **(MANDATORY)** Verification patterns applied (page load, element availability, action completion)
+
+---
+
+## 🎯 Phase 4 Success Criteria
+
+### **Complete Test Implementation**
+- ✅ **Test Scenario**: Complete implementation of 100% test description
+- ✅ **One Test Per File**: Each scenario file contains exactly ONE test
+- ✅ **Proper Layering**: Test → Business → Page Objects → AIElement → Cache
+- ✅ **No Hardcoding**: SettingsHelper used for all URLs and credentials
+- ✅ **Dynamic Test Data**: Data generator used for all test data (in-memory, no file operations)
+
+### **Tagging Implementation**
+- ✅ **TagHelper**: All tests use `TagHelper.taggedTest()` wrapper
+- ✅ **testId**: Unique testId constant in each test file
+- ✅ **TestTagsMapping**: Entry created with comprehensive description
+- ✅ **Mandatory Tags**: All 4 mandatory tags assigned (suite, priority, type, dataImpact)
+- ✅ **No Manual Tags**: Zero manual tag annotations in test files
+- ✅ **Extensible Reuse**: Existing extensible values reused when semantically matching
+
+### **NEW Components Generated**
+- ✅ **Page Objects**: All NEW Page Objects created with AIElement usage
+- ✅ **Business Workflows**: All NEW Business Workflows created with Page Object calls
+- ✅ **Locators**: All NEW locators added to cache
+
+### **EXISTING Components Reused**
+- ✅ **No Duplication**: EXISTING components reused without regeneration
+- ✅ **Safe Extensions**: Any extensions follow Phase 0 modification protocol
+- ✅ **Backward Compatible**: Existing tests remain unaffected
+
+### **Code Quality**
+- ✅ **Standards**: All code follows generation standards
+- ✅ **Architecture**: Layered architecture properly implemented
+- ✅ **Logging**: Hierarchical logging integrated at all layers
+- ✅ **No Direct Access**: Zero direct locators or page interactions in high-level code
+
+---
+
+## ➡️ Next Phase
+
+**Proceed to**: **[Phase 5 - Validation](mdc:Phase5_Validation.mdc)**
+
+**Entry Requirement**: Phase 4 completion checklist 100% satisfied
+
+**What Phase 5 Will Do**:
+- Execute regression tests (if classes were modified)
+- Execute new test with parameters `--workers=1 --headed --project=chromium`
+- Verify 100% pass rate (zero failures, zero skipped)
+- Verify project structure compliance
+- Regenerate if tests fail

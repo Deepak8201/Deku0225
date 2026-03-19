@@ -1,0 +1,591 @@
+---
+alwaysApply: true
+---
+# Phase 0: Test Analysis and Reusability Check
+
+> **Purpose**: Analyze test description, identify reusable components, and define investigation scope.
+> This phase prevents duplicate code generation and ensures safe extension of existing classes.
+
+## 📋 Metadata
+- **ID**: `phase_0_reusability`
+- **Name**: Phase 0 - Reusability Analysis
+- **Phase**: 0 (First Step - MANDATORY)
+- **Next Phase**: **[Phase 1 - Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+
+---
+
+## 🎯 Phase Objectives
+
+1. Understand complete test description before any other actions
+2. Identify which components already exist (Page Objects, Business, Locators)
+3. Determine which components can be reused vs need to be created new
+4. Document reusability decisions with justification
+5. Define investigation scope for Phase 1 (skip existing components)
+
+---
+
+## 📝 0.1 Test Description Analysis (MANDATORY)
+
+### **Requirements**
+- **(MANDATORY)** Read and analyze complete test description before any other actions
+- **(MANDATORY)** Identify all test steps and required interactions
+- **(MANDATORY)** Map test steps to potential layers: Test Scenario → Business → Page Objects
+- **(MANDATORY)** Identify which pages will be involved in the test flow
+- **(MANDATORY)** Identify which business workflows will be needed
+
+### **Output**
+- Complete understanding of test requirements
+- Layer mapping document
+- List of required pages and workflows
+
+---
+
+## 🔍 0.2 Reusability Analysis (MANDATORY)
+
+### **Check Existing Page Objects**
+**Location**: `tests/Functional/` directory
+
+**Actions**:
+- **(MANDATORY)** Search for Page Object classes that match pages identified in test description
+- **(MANDATORY)** **ALWAYS read and consider class metadata** (JSDoc comments, class descriptions, method purposes)
+- **(MANDATORY)** Review existing Page Object methods and locators
+- **(MANDATORY)** Determine which Page Objects can be reused as-is
+- **(MANDATORY)** Identify which Page Objects need extension or modification
+- **(MANDATORY)** Document reusable Page Objects for later use
+
+### **Check Existing Business Workflows**
+**Location**: `tests/Business/` directory
+
+**Actions**:
+- **(MANDATORY)** Search for Business classes that match workflows identified in test description
+- **(MANDATORY)** **ALWAYS read and consider class metadata** (JSDoc comments, class descriptions, method purposes)
+- **(MANDATORY)** Review existing Business methods and their implementations
+- **(MANDATORY)** Determine which Business classes can be reused as-is
+- **(MANDATORY)** Identify which Business classes need extension or modification
+- **(MANDATORY)** Document reusable Business classes for later use
+
+### **Check Existing Locators**
+**Location**: `tests/Utils/locator_cache.json`
+
+**Actions**:
+- **(MANDATORY)** Review cached locators for pages identified in test description
+- **(MANDATORY)** **Consider locator metadata** (descriptions, page context, element purposes)
+- **(MANDATORY)** Determine which locators can be reused without re-investigation
+- **(MANDATORY)** Identify which new locators need to be researched and added
+
+---
+
+## 📊 0.3 Investigation Scope Definition (MANDATORY)
+
+### **For Reusable Components** (existing Page Objects/Business/Locators)
+
+**Actions**:
+- **(MANDATORY)** **SKIP page investigation** - reuse existing code and locators
+- **(MANDATORY)** **SKIP element HTML collection** - use existing locator cache entries
+- **(MANDATORY)** **SKIP locator generation** - use cached locators as-is
+- **(MANDATORY)** Document which components are being reused
+
+### **For New Components** (not found in existing codebase)
+
+**Actions**:
+- **(MANDATORY)** Mark for full page investigation (Phase 1)
+- **(MANDATORY)** Mark for element HTML collection
+- **(MANDATORY)** Mark for locator generation
+- **(MANDATORY)** Document which new components need to be created
+
+### **Create Reusability Report**
+**Location**: `tests/Raw/Debug/ReusabilityAnalysis.md`
+
+**Content Requirements**:
+- List all components to be reused (Page Objects, Business, Locators)
+- List all new components that need investigation and creation
+- Define investigation scope for Phase 1
+- Provide justification for reuse vs. new creation decisions
+
+---
+
+## 🔒 0.4 Safe Extension/Modification Protocol (MANDATORY)
+
+### **Absolutely Necessary Changes Only**
+
+**Rules**:
+- **(MANDATORY)** **ONLY modify existing classes if absolutely necessary** for new test functionality
+- **(MANDATORY)** **DO NOT make cosmetic changes** - no rewording, reformatting, or style changes
+- **(MANDATORY)** **DO NOT change existing names** - class names, method names, variable names must remain unchanged
+- **(MANDATORY)** **DO NOT rephrase metadata** - JSDoc comments, descriptions must remain as-is unless adding NEW information
+- **PROHIBITED**: Changes with same meaning but different words (e.g., "click login button" → "press sign-in button")
+- **PROHIBITED**: Refactoring existing working code without functional necessity
+- **PROHIBITED**: Updating comments/documentation just to match your preferred style
+- **Rule**: If existing class works and has the needed functionality, use it AS-IS without any modifications
+
+### **Method Modification Strategy - Split + Merge Reuse Approach**
+
+**Core Principles**:
+- **(MANDATORY)** **NEVER modify existing methods directly** - this breaks existing tests
+- **(MANDATORY)** **DO NOT break existing tests** - all previously working tests must continue to pass
+- **(MANDATORY)** **Split methods into smaller atomic pieces** if new functionality is needed:
+  - Extract common logic into new smaller public methods
+  - Keep existing method signatures and behavior unchanged
+  - Create new public methods that compose smaller pieces for new flows
+  - Reuse smaller pieces across both old and new methods
+
+**Split + Merge Pattern**:
+1. **Split**: Extract existing method logic into smaller atomic public methods
+2. **Reconstruct**: Rebuild original method by calling extracted smaller methods
+3. **Merge**: Create new method by composing extracted methods + new functionality
+4. **Reuse**: Both old and new methods reuse same atomic building blocks
+
+**Form flows from smaller pieces**:
+- Break down complex operations into atomic reusable methods
+- Compose new workflows by calling sequence of smaller methods
+- Allow different test scenarios to reuse same building blocks
+- Maintain backward compatibility by keeping original methods intact
+
+**Applies to Both Layers**:
+- **Business Layer**: Split business workflow methods into smaller workflow steps
+- **Functional Layer (Page Objects)**: Split page interaction methods into smaller atomic interactions
+
+---
+
+### **Business Layer Example - Split + Merge Pattern**
+
+```typescript
+// ❌ WRONG - Modifying existing method breaks tests
+async performLogin(username: string, password: string): Promise<void> {
+    await this.loginPage.navigateToLogin(baseUrl);
+    await this.loginPage.fillCredentials(username, password);
+    await this.loginPage.clickLogin();
+    await this.loginPage.verifyRememberMe(); // ❌ NEW - breaks existing tests
+}
+
+// ✅ CORRECT - Split + Merge Pattern for Business Layer
+// Step 1: SPLIT - Extract smaller workflow steps as public methods
+async navigateToLoginPage(): Promise<void> {
+    await this.loginPage.navigateToLogin(baseUrl);
+}
+
+async fillLoginCredentials(username: string, password: string): Promise<void> {
+    await this.loginPage.fillCredentials(username, password);
+}
+
+async submitLogin(): Promise<void> {
+    await this.loginPage.clickLogin();
+}
+
+async verifyRememberMeOption(): Promise<void> {
+    await this.loginPage.verifyRememberMe();
+}
+
+// Step 2: RECONSTRUCT - Original method unchanged (calls smaller steps)
+async performLogin(username: string, password: string): Promise<void> {
+    await TestLogger.businessStep(`Login with username: ${username}`, async () => {
+        await this.navigateToLoginPage();
+        await this.fillLoginCredentials(username, password);
+        await this.submitLogin();
+    });
+}
+
+// Step 3: MERGE - New method composes smaller steps + new functionality
+async performLoginWithRememberMe(username: string, password: string): Promise<void> {
+    await TestLogger.businessStep(`Login with Remember Me: ${username}`, async () => {
+        await this.navigateToLoginPage();
+        await this.fillLoginCredentials(username, password);
+        await this.verifyRememberMeOption(); // NEW functionality
+        await this.submitLogin();
+    });
+}
+```
+
+---
+
+### **Functional Layer (Page Objects) Example - Split + Merge Pattern**
+
+```typescript
+// ❌ WRONG - Modifying existing method breaks tests
+async fillLoginForm(username: string, password: string): Promise<void> {
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+    await this.rememberMeCheckbox.check(); // ❌ NEW - breaks existing tests
+}
+
+// ✅ CORRECT - Split + Merge Pattern for Functional Layer
+// Step 1: SPLIT - Extract smaller atomic interactions as public methods
+async fillUsername(username: string): Promise<void> {
+    await this.usernameInput.fill(username);
+}
+
+async fillPassword(password: string): Promise<void> {
+    await this.passwordInput.fill(password);
+}
+
+async checkRememberMe(): Promise<void> {
+    await this.rememberMeCheckbox.check();
+}
+
+async clickLoginButton(): Promise<void> {
+    await this.loginButton.click();
+}
+
+// Step 2: RECONSTRUCT - Original method unchanged (calls smaller interactions)
+async fillLoginForm(username: string, password: string): Promise<void> {
+    await TestLogger.pageStep('Fill login credentials', async () => {
+        await this.fillUsername(username);
+        await this.fillPassword(password);
+    });
+}
+
+// Step 3: MERGE - New method composes smaller interactions + new functionality
+async fillLoginFormWithRememberMe(username: string, password: string): Promise<void> {
+    await TestLogger.pageStep('Fill login credentials with Remember Me', async () => {
+        await this.fillUsername(username);
+        await this.fillPassword(password);
+        await this.checkRememberMe(); // NEW functionality
+    });
+}
+
+// Additional composition example - different flow using same atomic pieces
+async fillCredentialsAndSubmit(username: string, password: string): Promise<void> {
+    await TestLogger.pageStep('Fill credentials and submit', async () => {
+        await this.fillUsername(username);
+        await this.fillPassword(password);
+        await this.clickLoginButton(); // Reusing atomic interaction
+    });
+}
+```
+
+---
+
+### **Split + Merge Decision Tree**
+
+**When to Apply Split + Merge**:
+- ✅ Existing method has multiple steps/interactions
+- ✅ New test requires partial reuse of existing method
+- ✅ New test requires same steps + additional steps
+- ✅ New test requires same steps - some steps (subset)
+- ✅ New test requires same steps with different order
+
+**Split + Merge Process**:
+1. **Analyze**: Identify which parts of existing method are reusable
+2. **Split**: Extract atomic operations into public methods
+3. **Reconstruct**: Rebuild original method using extracted methods
+4. **Verify**: Ensure original method behavior unchanged
+5. **Merge**: Create new method composing extracted + new methods
+6. **Test**: Verify both old and new methods work correctly
+
+---
+
+### **Functional Layer (Page Objects) - Split + Merge Requirements**
+
+**Reusability Scenarios for Page Objects**:
+
+**Scenario 1: Partial Form Filling**
+- Existing: `fillCompleteForm()` fills all fields
+- New test needs: Fill only subset of fields
+- Solution: Split into `fillField1()`, `fillField2()`, etc., then compose
+
+**Scenario 2: Form with Additional Fields**
+- Existing: `fillBasicInfo()` fills name, email
+- New test needs: Same + phone number
+- Solution: Split into atomic field fills, create `fillBasicInfoWithPhone()`
+
+**Scenario 3: Different Interaction Sequence**
+- Existing: `submitFormWithValidation()` validates then submits
+- New test needs: Submit without validation
+- Solution: Split into `validateForm()`, `submitForm()`, compose as needed
+
+**Scenario 4: Alternative Element Interaction**
+- Existing: `selectOptionFromDropdown()` uses dropdown
+- New test needs: Type in autocomplete instead
+- Solution: Split into `openSelector()`, `chooseOption()`, create `selectViaAutocomplete()`
+
+**Example - Complex Form Page Object**:
+
+```typescript
+// Existing Page Object with complex form method
+export class RegistrationPage extends AIPage {
+    private emailInput: AIElement;
+    private firstNameInput: AIElement;
+    private lastNameInput: AIElement;
+    private phoneInput: AIElement;
+    private addressInput: AIElement;
+    private submitButton: AIElement;
+
+    constructor(page: Page) {
+        super(page, 'RegistrationPage');
+        this.emailInput = new AIElement(this, 'emailInput', 'Email input field in registration form');
+        this.firstNameInput = new AIElement(this, 'firstNameInput', 'First name input field');
+        this.lastNameInput = new AIElement(this, 'lastNameInput', 'Last name input field');
+        this.phoneInput = new AIElement(this, 'phoneInput', 'Phone number input field');
+        this.addressInput = new AIElement(this, 'addressInput', 'Address input field');
+        this.submitButton = new AIElement(this, 'submitButton', 'Submit button at bottom of form');
+    }
+
+    // ❌ OLD APPROACH - Monolithic method, hard to reuse partially
+    async fillRegistrationFormOld(email: string, firstName: string, lastName: string, phone: string, address: string): Promise<void> {
+        await this.emailInput.fill(email);
+        await this.firstNameInput.fill(firstName);
+        await this.lastNameInput.fill(lastName);
+        await this.phoneInput.fill(phone);
+        await this.addressInput.fill(address);
+        await this.submitButton.click();
+    }
+
+    // ✅ NEW APPROACH - Split + Merge Pattern
+    // Step 1: SPLIT - Extract atomic interactions as public methods
+    async fillEmail(email: string): Promise<void> {
+        await this.emailInput.fill(email);
+    }
+
+    async fillFirstName(firstName: string): Promise<void> {
+        await this.firstNameInput.fill(firstName);
+    }
+
+    async fillLastName(lastName: string): Promise<void> {
+        await this.lastNameInput.fill(lastName);
+    }
+
+    async fillPhone(phone: string): Promise<void> {
+        await this.phoneInput.fill(phone);
+    }
+
+    async fillAddress(address: string): Promise<void> {
+        await this.addressInput.fill(address);
+    }
+
+    async clickSubmit(): Promise<void> {
+        await this.submitButton.click();
+    }
+
+    // Step 2: RECONSTRUCT - Original method using atomic pieces
+    async fillRegistrationForm(email: string, firstName: string, lastName: string, phone: string, address: string): Promise<void> {
+        await TestLogger.pageStep('Fill complete registration form', async () => {
+            await this.fillEmail(email);
+            await this.fillFirstName(firstName);
+            await this.fillLastName(lastName);
+            await this.fillPhone(phone);
+            await this.fillAddress(address);
+            await this.clickSubmit();
+        });
+    }
+
+    // Step 3: MERGE - Create variations by composing atomic pieces
+    async fillBasicInfoOnly(email: string, firstName: string, lastName: string): Promise<void> {
+        await TestLogger.pageStep('Fill basic registration info', async () => {
+            await this.fillEmail(email);
+            await this.fillFirstName(firstName);
+            await this.fillLastName(lastName);
+        });
+    }
+
+    async fillRegistrationWithoutPhone(email: string, firstName: string, lastName: string, address: string): Promise<void> {
+        await TestLogger.pageStep('Fill registration without phone', async () => {
+            await this.fillEmail(email);
+            await this.fillFirstName(firstName);
+            await this.fillLastName(lastName);
+            await this.fillAddress(address);
+            await this.clickSubmit();
+        });
+    }
+
+    async fillAndSubmitMinimalInfo(email: string, firstName: string): Promise<void> {
+        await TestLogger.pageStep('Fill and submit minimal info', async () => {
+            await this.fillEmail(email);
+            await this.fillFirstName(firstName);
+            await this.clickSubmit();
+        });
+    }
+}
+```
+
+**Benefits of Split + Merge for Functional Layer**:
+- ✅ Maximum reusability of atomic interactions
+- ✅ Easy to create variations without duplication
+- ✅ Backward compatibility maintained
+- ✅ Test scenarios can request exactly what they need
+- ✅ Reduced maintenance - change once, affects all compositions
+
+### **When Modification is Absolutely Necessary**
+
+**Identify ALL Usages**:
+- **(MANDATORY)** Search in `tests/TestScenario/` for test files using the class
+- **(MANDATORY)** Search in `tests/Business/` for business workflows calling the class
+- **(MANDATORY)** Search in `tests/Functional/` for other Page Objects using the class
+- **(MANDATORY)** Document all found usages in `ReusabilityAnalysis.md`
+
+**Analyze Impact**:
+- Determine if changes are backward-compatible
+- Identify which existing tests might be affected
+- Document potential breaking changes
+
+**Prefer Non-Breaking Changes**:
+- **(HIGHEST PRIORITY)** **Add new methods instead of modifying existing ones**
+- **Split existing methods into smaller reusable pieces** and create new compositions
+- Use method overloading for new parameters (if language supports)
+- Keep existing method signatures intact
+- Add optional parameters with default values (only if truly backward-compatible)
+
+**Verify Regression Safety** (MANDATORY):
+- **(MANDATORY)** After making any extension/modification to existing classes
+- **(MANDATORY)** **Execute ALL tests** that use the modified class
+- **(MANDATORY)** **Ensure 100% pass rate** for previously working tests
+- **(MANDATORY)** If any previously working test fails, revert changes or fix the issue
+- **(MANDATORY)** Document verification results in `ReusabilityAnalysis.md`
+
+**Update Metadata** (only if adding NEW functionality):
+- Add JSDoc comments for new methods/functionality only
+- Do NOT rephrase existing comments
+- Document new behavior without changing existing descriptions
+- Add version notes if significant changes made
+
+---
+
+## ✅ Phase 0 Completion Checklist
+
+- [ ] **(MANDATORY)** Complete test description analyzed
+- [ ] **(MANDATORY)** All test steps identified
+- [ ] **(MANDATORY)** Test steps mapped to layers (Test Scenario → Business → Page Objects)
+- [ ] **(MANDATORY)** All pages and workflows identified
+- [ ] **(MANDATORY)** Existing Page Objects searched and analyzed
+- [ ] **(MANDATORY)** Class metadata (JSDoc, descriptions) read and considered
+- [ ] **(MANDATORY)** Existing Business Workflows searched and analyzed
+- [ ] **(MANDATORY)** Existing locators in `locator_cache.json` reviewed
+- [ ] **(MANDATORY)** Reusability decisions made and justified
+- [ ] **(MANDATORY)** Investigation scope defined (NEW vs EXISTING)
+- [ ] **(MANDATORY)** `ReusabilityAnalysis.md` created with complete analysis
+- [ ] **(MANDATORY)** Extension/modification protocol understood and planned
+- [ ] **(MANDATORY)** If modifications needed, all usages identified
+- [ ] **(MANDATORY)** Regression safety plan documented
+
+---
+
+## 📤 Phase 0 Output
+
+### **Primary Output File**
+**File**: `tests/Raw/Debug/ReusabilityAnalysis.md`
+
+**Content Structure**:
+```markdown
+# Reusability Analysis Report
+
+## Test Description Summary
+- Test Name: [...]
+- Test Steps Count: [...]
+- Pages Involved: [...]
+- Workflows Needed: [...]
+
+## Reusable Components (EXISTING)
+
+### Page Objects to Reuse
+- **Class**: LoginPage
+  - **Location**: tests/Functional/LoginPage.ts
+  - **Reason**: Existing login page matches test requirements exactly
+  - **Modifications Needed**: None - use AS-IS
+
+### Business Workflows to Reuse
+- **Class**: LoginWorkflow
+  - **Location**: tests/Business/LoginWorkflow.ts
+  - **Reason**: Existing login workflow covers required steps
+  - **Modifications Needed**: Add new method `performLoginWithRememberMe()`
+
+### Locators to Reuse
+- **Page**: LoginPage
+  - **Locators**: usernameInput, passwordInput, loginButton
+  - **Source**: tests/Utils/locator_cache.json
+  - **Status**: No new locators needed
+
+## New Components (Need Investigation)
+
+### Page Objects to Create
+- **Page**: DashboardPage
+  - **Reason**: No existing Page Object for dashboard
+  - **Investigation Scope**: Full page investigation in Phase 1
+
+### Business Workflows to Create
+- **Workflow**: DashboardNavigation
+  - **Reason**: No existing workflow for dashboard navigation
+  - **Investigation Scope**: Create in Phase 3
+
+### Locators to Generate
+- **Page**: DashboardPage
+  - **Elements**: menuButton, profileLink, logoutButton
+  - **Investigation Scope**: Element collection in Phase 1
+
+## Investigation Scope for Phase 1
+
+### SKIP Investigation (Reusable Components)
+- LoginPage - use existing
+- LoginWorkflow - extend existing (safe modification)
+- LoginPage locators - use from cache
+
+### PERFORM Investigation (New Components)
+- DashboardPage - full investigation
+- DashboardPage locators - collect and generate
+
+## Modification Impact Analysis
+
+### Business Layer Classes to Extend/Modify
+- **LoginWorkflow**
+  - **Change**: Apply Split + Merge pattern - extract workflow steps, add `performLoginWithRememberMe()` method
+  - **Type**: Non-breaking addition
+  - **Split Strategy**: Extract `navigateToLoginPage()`, `fillLoginCredentials()`, `submitLogin()` as public methods
+  - **Usages Found**: 3 test files in tests/TestScenario/
+  - **Impact**: None - backward compatible (original method reconstructed from smaller steps)
+  - **Regression Plan**: Execute all 3 tests after modification
+
+### Functional Layer Classes to Extend/Modify
+- **LoginPage**
+  - **Change**: Apply Split + Merge pattern - extract atomic interactions, add `fillLoginFormWithRememberMe()` method
+  - **Type**: Non-breaking addition
+  - **Split Strategy**: Extract `fillUsername()`, `fillPassword()`, `checkRememberMe()`, `clickLoginButton()` as public methods
+  - **Usages Found**: 2 Business classes (LoginWorkflow, AdminLoginWorkflow)
+  - **Impact**: None - backward compatible (original method reconstructed from atomic interactions)
+  - **Regression Plan**: Execute all tests using LoginWorkflow and AdminLoginWorkflow
+
+## Justification
+
+### Why Reuse LoginPage
+- Existing class has all required methods
+- Locators are cached and validated
+- No functional gaps identified
+- Metadata confirms compatibility
+
+### Why Extend LoginWorkflow
+- Core login logic exists
+- Need additional "remember me" functionality
+- Extension is backward-compatible
+- Existing tests won't be affected
+
+### Why Create DashboardPage
+- No existing Page Object found
+- Dashboard functionality is new to tests
+- Full investigation required
+```
+
+---
+
+## 🎯 Success Criteria
+
+- ✅ **Test Description**: Complete understanding of test requirements
+- ✅ **Metadata Consideration**: All existing class metadata read and considered
+- ✅ **Component Discovery**: All existing components identified
+- ✅ **Reusability Decisions**: Clear decisions with justification
+- ✅ **Investigation Scope**: Well-defined scope for Phase 1
+- ✅ **Modification Protocol**: Safe extension/modification plan if needed
+- ✅ **Impact Analysis**: All usages documented if modifications planned
+- ✅ **Regression Plan**: Clear plan for regression testing if applicable
+- ✅ **Documentation**: Complete `ReusabilityAnalysis.md` report
+
+---
+
+## ➡️ Next Phase
+
+**Proceed to**: **[Phase 1 - Locator Research](mdc:Phase1_LocatorResearch.mdc)**
+
+**Entry Requirement**: Phase 0 completion checklist 100% satisfied
+
+**What Phase 1 Will Do**:
+- Investigate ONLY NEW components identified in this phase
+- SKIP investigation for EXISTING components (use as-is)
+- Collect element HTML for NEW pages
+- Generate locators for NEW elements
+- Document investigation sequence

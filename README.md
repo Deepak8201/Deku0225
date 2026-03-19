@@ -1,93 +1,243 @@
-# Cloud JPG Tests
+# AI-Enhanced Test Automation Framework Template
+
+> **Template Repository**: This is a template for creating AI-driven test automation projects using Playwright, TypeScript, and intelligent test generation capabilities.
 
 
+## 🎯 About This Template
 
-## Getting started
+This template provides a complete AI-enhanced test automation framework with:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- **AI-Driven Test Generation**: Intelligent test generation through Cursor AI rules
+- **Playwright Integration**: Modern browser automation with TypeScript
+- **Layered Architecture**: Clean separation of concerns (Test Scenarios → Business → Page Objects)
+- **Smart Element Location**: Cache-first locator management with AI fallback
+- **Comprehensive Logging**: Hierarchical logging system (TestLogger)
+- **API Integration**: REST, GraphQL, and OAuth 2.0 support via APIHelper
+- **Database Support**: Multi-database connectivity (MySQL, PostgreSQL, MSSQL, MongoDB, Oracle)
+- **File Management**: TestFileHelper for upload testing with stable/temp file structure
+- **Tag-Based Execution**: Flexible test filtering and categorization
+- **Configuration Management**: Environment-based settings with fallback support
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## 🚀 Initial Setup After Copying
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+### Step 1: Install Dependencies and Browsers
+
+```bash
+# Install Node.js packages
+npm install
+
+# Install Playwright browsers
+npx playwright install
+```
+
+### Step 2: Add MCP Server (Required for Browser Automation)
+
+1. Open Cursor Settings
+2. Got to 'Tools & MCP' tab
+3. Click "New MCP Server"
+4. Add the following MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "Playwright": {
+      "command": "npx -y @playwright/mcp@latest",
+      "env": {},
+      "args": []
+    }
+  }
+}
+```
+
+5. Save the settings.json file
+6. Enable "Playwright" MCP Server
+7. Check that MCP Server enabled witout errors
+
+### Step 3: Configure Environment Settings for Local execution (ATP_ENVGENE_CONFIGURATION environment variable)
+
+1. Create Environment configuration file in `tests/Settings/EnvironmentSettings` folder.
+- **Structure**: systems[].{systemName}.connections[].{connectionType}.{parameters}
+- **Example**: tests\Settings\EnvironmentSettings\envTemplateExample.json
+2. Update `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script with created configuration file name.
+3. Run `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script using Terminal
+
+**ATP_ENVGENE_CONFIGURATION** environment variable with specified configuration will be created localy.
+
+When running tests via Pipeline **ATP_ENVGENE_CONFIGURATION** environment variable will be created by **EnvGen** according to selected environment in job.
+
+## 📁 Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://git.netcracker.com/PROD.ATP/projects.atp/cloud-jpg/cloud-jpg-tests.git
-git branch -M master
-git push -uf origin master
+atp3-tests-template/
+├── .cursor/
+│   ├── prompts/                               # Cursor AI prompts
+│   └── rules/                                 # Cursor AI rules for test generation
+│       ├── RuleRegistry.mdc                      # Central registry and index of all rules
+│       ├── MainGenerationOrchestrator.mdc        # Main workflow orchestrator
+│       ├── Phase0_ReusabilityAnalysis.mdc        # Component reusability check
+│       ├── Phase1_LocatorResearch.mdc            # Page investigation and element collection
+│       ├── Phase2_PreGenerationVerification.mdc  # Research completion gate
+│       ├── Phase3_ImplementationStandards.mdc    # Implementation patterns
+│       ├── Phase4_TestGeneration.mdc             # Code generation phase
+│       ├── Phase5_Validation.mdc                 # Test execution and validation
+│       ├── ArchitectureLayeredDesign.mdc         # Layered architecture requirements
+│       ├── LocatorManagementSystem.mdc           # Locator cache management
+│       ├── TaggingStandards.mdc                  # Test tagging system
+│       ├── TestExecutionRequirements.mdc         # Playwright execution parameters
+│       ├── ReportingRequirements.mdc             # Report generation standards
+│       ├── InvestigationTracking.mdc             # Investigation documentation
+│       ├── DatabaseHelperRule.mdc                # Database integration patterns
+│       ├── APIIntegrationRule.mdc                # API integration patterns
+│       └── project-custom-rule.mdc               # Add your custom rules here
+│
+├── Engine/
+│   └── Shared/
+│       ├── AIElement.ts                  # Smart element locator with cache
+│       ├── AIPage.ts                     # Base page class
+│       ├── AITomsPage.ts                 # Table view page base class
+│       ├── BoundElement.ts               # Resolved element interaction wrapper
+│       ├── TestLogger.ts                 # Hierarchical logging system
+│       ├── SettingsHelper.ts             # Configuration management
+│       ├── TagHelper.ts                  # Test tagging system
+│       ├── TagRegistry.ts                # Tag validation and management
+│       ├── ConsoleCapture.ts             # Browser console/network capture
+│       ├── CleanStackReporter.ts         # Clean stack trace reporter
+│       ├── APIHelper.ts                  # REST/GraphQL/OAuth integration
+│       ├── DatabaseHelper.ts             # Multi-database support
+│       ├── DatabaseAdapters.ts           # Database adapter registry
+│       ├── TestFileHelper.ts             # File creation/management for uploads
+│       ├── LocatorCacheManagement.ts     # Intelligent locator caching system
+│       └── types.ts                      # TypeScript type definitions
+│
+├── tests/
+│   ├── Business/                         # Business workflow layer
+│   ├── Functional/                       # Page Object layer
+│   ├── TestScenario/                     # Test scenario layer
+│   ├── TestDesign/                       # Test design specifications
+│   ├── TestData/                         # Test data generators (in-memory)
+│   │   └── Files/                        # Stable test files (not cleaned)
+│   ├── Settings/
+│   │   ├── EnvironmentSettings/          # Environment configuration folder
+│   │   │   ├── envTemplateExample.json   # Environment template example
+│   │   │   └── setEnvironmentScript.ps1  # Environment setup script
+│   │   └── TagConfiguration.json         # Tag definitions
+│   ├── Utils/
+│   │   ├── locator_cache.json            # Cached element locators
+│   │   └── TestTagsMapping.json          # Test-to-tag mappings
+│   └── Raw/                            
+│       ├── Debug/                        # Investigation & debug files
+│       └── Report/                       # Test execution reports
+│
+├── .eslintrc.json                        # ESLint configuration
+├── .prettierrc.json                      # Prettier configuration
+├── .prettierignore                       # Prettier ignore rules
+├── .gitignore                            # Git ignore rules
+├── package.json                          # Node.js dependencies
+├── playwright.config.ts                  # Playwright configuration
+├── tsconfig.json                         # TypeScript configuration
+├── global-setup.js                       # Playwright global setup
+├── run-playwright.js                     # Test runner script
+├── start_tests.sh                        # Shell script for CI test execution
+└── README.md                             # This file
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://git.netcracker.com/PROD.ATP/projects.atp/cloud-jpg/cloud-jpg-tests/-/settings/integrations)
+## 🎯 Framework Features
 
-## Collaborate with your team
+### Feature 1: Layered Architecture
+- **Test Scenario**: High-level test flow orchestration
+- **Business Workflow**: Domain logic and multi-page workflows
+- **Page Objects**: UI interaction definitions
+- **AIElement**: Smart element location with cache-first approach
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
 
-## Test and Deploy
+## 🧪 Test Generation Workflow
 
-Use the built-in continuous integration in GitLab.
+**To Generate Tests**: Use the command `Generate test scenario based on description provided @TestDesign.md` where `@TestDesign.md` contains your test steps description.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+The framework includes AI-powered test generation through Cursor rules:
 
-***
+### Phase 1: Reusability Analysis
+- Analyze test description
+- Identify existing reusable components
+- Define investigation scope
 
-# Editing this README
+### Phase 2: Locator Research
+- Capture page state with Playwright
+- Collect element HTML
+- Generate optimal locators
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Phase 3: Pre-Generation Verification
+- Verify 100% research completion
+- Gate before code generation
 
-## Suggestions for a good README
+### Phase 4: Implementation Standards
+- Define base class usage
+- Establish logging integration
+- Apply verification patterns
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Phase 5: Test Generation
+- Generate Page Objects
+- Generate Business Workflows
+- Generate Test Scenarios with tagging
 
-## Name
-Choose a self-explaining name for your project.
+### Phase 6: Validation
+- Execute regression tests
+- Verify 100% pass rate
+- Check project structure compliance
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## 🏃 Running Tests
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Basic Execution (Terminal output)
+```bash
+# Run all tests 
+npx playwright test
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+# Run specific test file
+npx playwright test tests/TestScenario/LoginTest.test.ts
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+# Run with specific browser
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+npx playwright test --project=webkit
+```
+### UI Mode
+```bash
+# Run UI Mode for execution and debugging
+npx playwright test --ui
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Headed Mode (Visible Browser)
+```bash
+# Run with visible browser
+npx playwright test --headed
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Tag-Based Running
+```bash
+# Run smoke tests
+npx playwright test --grep "@smoke"
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+# Run critical priority
+npx playwright test --grep "@critical"
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+# Run specific feature
+npx playwright test --grep "@feature:login"
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Reports
+```bash
+# Show HTML report
+npx playwright show-report
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+# Generate Allure report
+npm run allure:generate
+npm run allure:open
+```
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+**Happy Testing! 🚀**
