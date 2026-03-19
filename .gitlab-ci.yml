@@ -24,7 +24,7 @@ build-sonar:
       - sonar-scanner/
       
   script:
-  - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}" -Dsonar.projectKey=PROD.<ADD KEY HERE> -Dsonar.qualitygate.wait=true -Dsonar.jira.skipTags=@wip
+  - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}" -Dsonar.projectKey=PROD.ATP_projects.atp_cloud-jpg_cloud-jpg-tests_dbf6ddf0-6bfe-4b00-ae49-39e82e98c11f -Dsonar.qualitygate.wait=true -Dsonar.jira.skipTags=@wip
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
