@@ -22,14 +22,44 @@ This template provides a complete AI-enhanced test automation framework with:
 
 ## 🚀 Installation
 
-### Step 1: Clone the repository with submodules
+### Step 1: Clone the template to existing project repository
 
 ```bash
-# Clone with submodules (recommended)
-git clone --recurse-submodules https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/atp3-tests-template.git
+# 1. Clone the target project repository
+git clone <project-repository-url>
 
-# Or if already cloned without submodules:
+# 2. Navigate to project repository
+cd project-repo
+
+# 3. Add template repository as temporary remote (alias "template")
+git remote add template https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/atp3-tests-template.git
+
+# 4. Fetch data from template without merging
+git fetch template
+
+# 5. Copy ALL files from template/master branch to current directory
+# - without history
+# - without .git
+# - just as content
+git checkout template/master -- .
+
+# 6. Initialize and download submodules specified in template
 git submodule update --init --recursive
+
+# 7. Remove connection to template repository
+git remote remove template
+
+# 8. Commit and push changes
+git add .
+git commit -m "Init project from template"
+git push
+
+# 9. Verify setup (optional but recommended)
+# Check submodules status (should show commit hashes for core-prompts, core-rules and Shared submodules)
+git submodule status
+
+# Check remote connections (should show ONLY 'project' remote)
+git remote -v
 ```
 
 ### Step 2: Install Dependencies and Browsers
