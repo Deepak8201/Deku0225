@@ -22,7 +22,11 @@ This template provides a complete AI-enhanced test automation framework with:
 
 ## 🚀 Installation
 
-### Step 1: Clone the template to existing project repository
+### Step 1: Clone and Setup Project Repository
+
+**Scenario A:** Set Up Template in Empty/Existing Project Repository
+
+**Use this when**: You're setting up the template structure for the first time in a project repository.
 
 ```bash
 # 1. Clone the target project repository
@@ -60,6 +64,25 @@ git submodule status
 
 # Check remote connections (should show ONLY 'project' remote)
 git remote -v
+```
+
+**Scenario B:** Clone Repository That Already Has Template Structure
+
+**Use this when**: You're cloning a project that already has the template set up (most common for team members).
+
+```bash
+# 1. Clone the project repository
+git clone <project-repository-url>
+
+# 2. Navigate to project repository
+cd project-repo
+
+# 3. Initialize and download submodules
+git submodule update --init --recursive
+
+# 4. Verify setup (optional but recommended)
+# Check submodules status (should show commit hashes for core-prompts, core-rules and Shared submodules)
+git submodule status
 ```
 
 ### Step 2: Install Dependencies and Browsers

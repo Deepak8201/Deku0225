@@ -185,9 +185,9 @@ Used for: SSH connection parameters.
             "HTTP": {
               "url": "https://app.example.com",
               "tokenEndpoint": "/auth/token",
+              "grantType": "password",
               "username": "testuser",
               "password": "testpass",
-              "tokenEndpoint": "/oauth/token",
               "clientId": "client",
               "clientSecret": "secret",
               "scope": "openid"
