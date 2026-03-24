@@ -1,0 +1,22 @@
+build:
+  env:
+    type: microservice
+    version: node-16.15.1_npm-8.11.0
+  networkRules: sd
+  variables:
+    TRANSFER_IMAGE: TRANSFER_IMAGE
+    APPLICATION_NAME: atp3-pw-${project_name}
+
+deploy:
+  dmp:
+    application_id: atp3-pw-${project_name}
+
+publication:
+  cloud-dd:
+    images:
+      - name: '[REPOSITORY_NAME]:[LOCATION]_[TIMESTAMP]'
+        service-name: atp3-pw-${project_name}
+        id: atp3-pw-${project_name}
+    app-chart:
+      path: app-chart
+      publish: true
