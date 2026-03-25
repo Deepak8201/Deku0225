@@ -4,6 +4,7 @@ build:
     version: node-16.15.1_npm-8.11.0
   networkRules: sd
   variables:
+    RUNNER_IMAGE: RUNNER_IMAGE
     TRANSFER_IMAGE: TRANSFER_IMAGE
     APPLICATION_NAME: atp3-pw-${project_name}
 

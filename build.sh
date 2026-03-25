@@ -17,10 +17,12 @@ docker rm ${containername}
 
 mkdir -p helm-templates/$APPLICATION_NAME
 cp -R ./deployments/charts/$APPLICATION_NAME/* helm-templates/$APPLICATION_NAME
+sed -i "s/^name: atp3-pw$/name: $APPLICATION_NAME/" app-chart/Chart.yaml
 
 for docker_image_name in ${DOCKER_NAMES}; do
   DOCKER_BUILDKIT=1 docker build \
     --build-arg HTTP_FTP_PROJECTS=${HTTP_FTP_PROJECTS} \
+    --build-arg RUNNER_IMAGE=${RUNNER_IMAGE} \
     --pull \
     -t ${docker_image_name} \
     .
