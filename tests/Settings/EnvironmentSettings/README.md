@@ -155,19 +155,55 @@ Used for: SSH connection parameters.
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `host` | Yes | SSH host. |
-| `port` | Yes | SSH port. |
-| `username` | Yes | SSH user. |
-| `password` | Yes | SSH password. |
+| `host` / `ssh_host` | Yes | SSH host address. |
+| `username` / `ssh_login` | Yes | SSH username. |
+| `password` / `ssh_password` | No | SSH password (for password-based auth). |
+| `port` / `ssh_port` | No | SSH port (default: 22). |
+| `workingDirectory` / `ssh_working_dir` | No | Working directory for remote commands. |
+| `identityFilePath` / `ssh_key` | No | Path to SSH private key file (for key-based auth). |
+| `passphrase` | No | Passphrase for encrypted SSH key. |
+| `connectTimeoutSeconds` | No | Connection timeout in seconds. |
+| `commandTimeoutMs` | No | Command execution timeout in milliseconds. |
+| `strictHostKeyChecking` | No | Enable/disable strict host key checking (true/false). |
+| `clientBinary` | No | Custom path to SSH client binary. |
+| `passwordAuthBinary` | No | Custom path to sshpass binary (for password auth). |
 
-**Example:**
+**Example (password-based authentication):**
 
 ```json
 "SSH": {
   "host": "host.example.com",
   "port": 22,
   "username": "ssh_user",
-  "password": "ssh_password"
+  "password": "ssh_password",
+  "workingDirectory": "/home/ssh_user",
+  "connectTimeoutSeconds": 30,
+  "commandTimeoutMs": 60000,
+  "strictHostKeyChecking": false
+}
+```
+
+**Example (key-based authentication):**
+
+```json
+"SSH": {
+  "host": "host.example.com",
+  "username": "ssh_user",
+  "identityFilePath": "/path/to/private_key",
+  "passphrase": "key_passphrase",
+  "workingDirectory": "/home/ssh_user"
+}
+```
+
+**Example (using alternative parameter names):**
+
+```json
+"SSH": {
+  "ssh_host": "host.example.com",
+  "ssh_port": 22,
+  "ssh_login": "ssh_user",
+  "ssh_password": "ssh_password",
+  "ssh_working_dir": "/home/ssh_user"
 }
 ```
 
