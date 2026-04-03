@@ -47,7 +47,7 @@ Used for: base URL, login credentials, API base URL, OAuth (token endpoint, clie
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `url` | Yes | Base URL (e.g. `https://app.example.com`). |
-| `username` | Yes* | Login username. *Required for UI login.* |
+| `username` / `login` | Yes* | Login username. *Required for UI login.* |
 | `password` | Yes* | Login password. *Required for UI login / default credentials.* |
 | `startPage` | No | Path appended to `url` for full app URL (e.g. `/app`, `/login`). Full URL = `url` + this path. |
 | `ignoreHTTPSErrors` | No | `"true"` / `"false"` – to ignore HTTPS certificate errors for API. |
@@ -227,6 +227,14 @@ Used for: SSH connection parameters.
               "clientId": "client",
               "clientSecret": "secret",
               "scope": "openid"
+            }
+          },
+          {
+            "SSH": {
+              "host": "remote.example.com",
+              "username": "sshuser",
+              "password": "sshpass",
+              "workingDirectory": "/home/sshuser"
             }
           }
         ]
