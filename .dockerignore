@@ -4,3 +4,27 @@ allure-results/
 allure-report/
 .playwright-mcp/
 .tmp_delete/
+
+# Git
+.git/
+.gitignore
+
+# Sensitive files
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+credentials.json
+secrets.json
+secrets.yml
+auth.json
+
+# CI/CD
+.gitlab-ci.yml
+.github/
+
+# Node
+node_modules/
+npm-debug.log*
