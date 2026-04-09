@@ -16,13 +16,76 @@ This template provides a complete AI-enhanced test automation framework with:
 - **Database Support**: Multi-database connectivity (MySQL, PostgreSQL, MSSQL, MongoDB, Oracle)
 - **File Management**: TestFileHelper for upload testing with stable/temp file structure
 - **Tag-Based Execution**: Flexible test filtering and categorization
-- **Configuration Management**: Environment-based settings with fallback support
+- **Configuration Management**: Environment configuration via EnvGen or locally using environment variable
 
 ---
 
-## 🚀 Initial Setup After Copying
+## 🚀 Installation
 
-### Step 1: Install Dependencies and Browsers
+### Step 1: Clone and Setup Project Repository
+
+**Scenario A:** Set Up Template in Empty/Existing Project Repository
+
+**Use this when**: You're setting up the template structure for the first time in a project repository.
+
+```bash
+# 1. Clone the target project repository
+git clone <project-repository-url>
+
+# 2. Navigate to project repository
+cd project-repo
+
+# 3. Add template repository as temporary remote (alias "template")
+git remote add template https://git.netcracker.com/PROD.ATP/product.atp/atp3-templates/atp3-tests-template.git
+
+# 4. Fetch data from template without merging
+git fetch template
+
+# 5. Copy ALL files from template/master branch to current directory
+# - without history
+# - without .git
+# - just as content
+git checkout template/master -- .
+
+# 6. Initialize and download submodules specified in template
+git submodule update --init --recursive
+
+# 7. Remove connection to template repository
+git remote remove template
+
+# 8. Commit and push changes
+git add .
+git commit -m "Init project from template"
+git push
+
+# 9. Verify setup (optional but recommended)
+# Check submodules status (should show commit hashes for core-rules and Engine/Shared submodules)
+git submodule status
+
+# Check remote connections (should show ONLY 'project' remote)
+git remote -v
+```
+
+**Scenario B:** Clone Repository That Already Has Template Structure
+
+**Use this when**: You're cloning a project that already has the template set up (most common for team members).
+
+```bash
+# 1. Clone the project repository
+git clone <project-repository-url>
+
+# 2. Navigate to project repository
+cd project-repo
+
+# 3. Initialize and download submodules
+git submodule update --init --recursive
+
+# 4. Verify setup (optional but recommended)
+# Check submodules status (should show commit hashes for core-rules and Engine/Shared submodules)
+git submodule status
+```
+
+### Step 2: Install Dependencies and Browsers
 
 ```bash
 # Install Node.js packages
@@ -32,7 +95,7 @@ npm install
 npx playwright install
 ```
 
-### Step 2: Add MCP Server (Required for Browser Automation)
+### Step 3: Add MCP Server (Required for Browser Automation)
 
 1. Open Cursor Settings
 2. Got to 'Tools & MCP' tab
@@ -55,45 +118,78 @@ npx playwright install
 6. Enable "Playwright" MCP Server
 7. Check that MCP Server enabled witout errors
 
-### Step 3: Configure Environment Settings for Local execution (ATP_ENVGENE_CONFIGURATION environment variable)
+### Step 4: Configure Environment Settings for Local execution (ATP_ENVGENE_CONFIGURATION environment variable)
 
 1. Create Environment configuration file in `tests/Settings/EnvironmentSettings` folder.
 - **Structure**: systems[].{systemName}.connections[].{connectionType}.{parameters}
 - **Example**: tests\Settings\EnvironmentSettings\envTemplateExample.json
 2. Update `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script with created configuration file name.
 3. Run `tests\Settings\EnvironmentSettings\setEnvironmentScript.ps1` script using Terminal
+4. **Restart Cursor** to ensure the environment variable is loaded
 
 **ATP_ENVGENE_CONFIGURATION** environment variable with specified configuration will be created localy.
 
 When running tests via Pipeline **ATP_ENVGENE_CONFIGURATION** environment variable will be created by **EnvGen** according to selected environment in job.
+
+## 📦 Submodules
+
+This project uses Git submodules for shared components:
+
+| Submodule | Path | Description |
+|-----------|------|-------------|
+| core-engine | `Engine/Shared` | Core framework (AIPage, AIElement, TestLogger, etc.) |
+| core-rules | `.cursor/rules/core-rules` | Cursor AI core rules for test generation |
+
+Prompt files for test generation live directly under `.cursor/prompts/` (see repository tree); they are not a submodule.
+
+### Update submodules to latest version
+
+```bash
+# Update all submodules to latest commit from their remote
+git submodule update --remote
+
+# Update specific submodule
+git submodule update --remote .cursor/rules/core-rules
+
+# After updating, commit the changes
+git add .cursor/rules/core-rules
+git commit -m "Update submodules to latest version"
+```
+
+### Check submodule status
+
+```bash
+git submodule status
+```
 
 ## 📁 Project Structure
 
 ```
 atp3-tests-template/
 ├── .cursor/
-│   ├── prompts/                               # Cursor AI prompts
-│   └── rules/                                 # Cursor AI rules for test generation
-│       ├── RuleRegistry.mdc                      # Central registry and index of all rules
-│       ├── MainGenerationOrchestrator.mdc        # Main workflow orchestrator
-│       ├── Phase0_ReusabilityAnalysis.mdc        # Component reusability check
-│       ├── Phase1_LocatorResearch.mdc            # Page investigation and element collection
-│       ├── Phase2_PreGenerationVerification.mdc  # Research completion gate
-│       ├── Phase3_ImplementationStandards.mdc    # Implementation patterns
-│       ├── Phase4_TestGeneration.mdc             # Code generation phase
-│       ├── Phase5_Validation.mdc                 # Test execution and validation
-│       ├── ArchitectureLayeredDesign.mdc         # Layered architecture requirements
-│       ├── LocatorManagementSystem.mdc           # Locator cache management
-│       ├── TaggingStandards.mdc                  # Test tagging system
-│       ├── TestExecutionRequirements.mdc         # Playwright execution parameters
-│       ├── ReportingRequirements.mdc             # Report generation standards
-│       ├── InvestigationTracking.mdc             # Investigation documentation
-│       ├── DatabaseHelperRule.mdc                # Database integration patterns
-│       ├── APIIntegrationRule.mdc                # API integration patterns
-│       └── project-custom-rule.mdc               # Add your custom rules here
+│   ├── prompts/                               # Cursor AI prompts (*.md, MIG/, .gitignore)
+│   └── rules/                                 # Cursor AI rules
+│       └── core-rules/                           # Core rules for test generation
+│           ├── RuleRegistry.mdc                      # Central registry and index of all rules
+│           ├── MainGenerationOrchestrator.mdc        # Main workflow orchestrator
+│           ├── Phase0_ReusabilityAnalysis.mdc        # Component reusability check
+│           ├── Phase1_LocatorResearch.mdc            # Page investigation and element collection
+│           ├── Phase2_PreGenerationVerification.mdc  # Research completion gate
+│           ├── Phase3_ImplementationStandards.mdc    # Implementation patterns
+│           ├── Phase4_TestGeneration.mdc             # Code generation phase
+│           ├── Phase5_Validation.mdc                 # Test execution and validation
+│           ├── ArchitectureLayeredDesign.mdc         # Layered architecture requirements
+│           ├── LocatorManagementSystem.mdc           # Locator cache management
+│           ├── TaggingStandards.mdc                  # Test tagging system
+│           ├── TestExecutionRequirements.mdc         # Playwright execution parameters
+│           ├── ReportingRequirements.mdc             # Report generation standards
+│           ├── InvestigationTracking.mdc             # Investigation documentation
+│           ├── DatabaseHelperRule.mdc                # Database integration patterns
+│           ├── APIIntegrationRule.mdc                # API integration patterns
+│           └── project-custom-rule.mdc               # Add your custom rules here
 │
 ├── Engine/
-│   └── Shared/
+│   └── Shared/                           # Core implementation
 │       ├── AIElement.ts                  # Smart element locator with cache
 │       ├── AIPage.ts                     # Base page class
 │       ├── AITomsPage.ts                 # Table view page base class
@@ -134,6 +230,8 @@ atp3-tests-template/
 ├── .prettierrc.json                      # Prettier configuration
 ├── .prettierignore                       # Prettier ignore rules
 ├── .gitignore                            # Git ignore rules
+├── .gitmodules                           # Git submodules configuration
+├── .gitlab-ci.yml                        # GitLab CI/CD pipeline configuration
 ├── package.json                          # Node.js dependencies
 ├── playwright.config.ts                  # Playwright configuration
 ├── tsconfig.json                         # TypeScript configuration
