@@ -1,0 +1,20 @@
+# Example env file for local environment configuration.
+# Copy this file and rename it (e.g. env-myenv.yaml), then fill in real values.
+# This file is committed to git. All other *.yaml files in this folder are gitignored.
+#
+# Usage:
+#   .\environment-configuration\setEnvironmentScript.ps1 -TemplateFile "environment-configuration-template-ndo.json" -EnvFile "env-myenv.yaml"
+#
+# Placeholder names must match exactly the ${PLACEHOLDER} values in the chosen template file.
+# Template files: environment-configuration-template-<name>.json
+
+# --- Example for template: environment-configuration-template.json ---
+
+CLOUD_PROTOCOL: "https"
+ENVIRONMENT_NAME: "<environment_name>"
+CLOUD_PUBLIC_HOST: "<cloud_public_host>"
+DEFAULT_TENANT_ADMIN_LOGIN: "<username>"
+DEFAULT_TENANT_ADMIN_PASSWORD: "<password>"
+
+CONSUL_PUBLIC_URL: "https://<consul_host>"
+CONSUL_ADMIN_TOKEN: "<token>"

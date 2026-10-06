@@ -1,0 +1,12 @@
+
+# APM dependencies
+apm_modules/
+
+# AI Workplace
+.opencode/hooks/.docs-sync-state.json
+.opencode/.backups/
+.opencode/.update-backup/
+.opencode/.temp-update/
+.opencode/.temp-apm-selection.json
+.workplace/activated/
+.workplace/state.json

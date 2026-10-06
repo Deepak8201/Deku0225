@@ -1,0 +1,38 @@
+{
+  "SamplePage": {
+    "name": "Sample Page",
+    "url": "/",
+    "description": "Sample page demonstrating locator cache structure",
+    "locators": {
+      "homeLink": {
+        "key": "homeLink",
+        "description": "Home page navigation link",
+        "locator": [
+          { "method": "getByRole", "args": ["link", { "name": "Home" }] }
+        ]
+      },
+      "searchInput": {
+        "key": "searchInput",
+        "description": "Search input field",
+        "locator": [
+          { "method": "getByPlaceholder", "args": ["Search…"] }
+        ]
+      },
+      "submitButton": {
+        "key": "submitButton",
+        "description": "Form submit button",
+        "locator": [
+          { "method": "getByRole", "args": ["button", { "name": "Submit" }] }
+        ]
+      },
+      "resultRow": {
+        "key": "resultRow",
+        "description": "Result table row identified by row label (dynamic)",
+        "locator": [
+          { "method": "getByRole", "args": ["row"] },
+          { "method": "filter", "args": [{ "hasText": "{param}" }] }
+        ]
+      }
+    }
+  }
+}

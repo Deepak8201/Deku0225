@@ -1,0 +1,65 @@
+import { test, expect } from '@playwright/test';
+
+test.use({
+  ignoreHTTPSErrors: true
+});
+
+test('test', async ({ page }) => {
+  await page.goto('https://10.109.32.190:9444/');
+  await page.getByRole('textbox', { name: 'Username' }).click();
+  await page.getByRole('textbox', { name: 'Username' }).fill('sysadm');
+  await page.locator('#pass').click();
+  await page.locator('#pass').fill('netcracker');
+  await page.getByRole('button', { name: 'Log In' }).click();
+  await page.goto('https://10.109.32.190:9444/common/uobject.jsp?object=1000');
+  await page.getByText('Quick Create').click();
+  await page.getByRole('menuitem', { name: 'Residential Customer' }).click();
+  await page.getByRole('textbox', { name: 'Email' }).click();
+  await page.getByRole('textbox', { name: 'Email' }).fill('some_random_email123@test.com');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByLabel('Title').selectOption('9135198009413341623');
+  await page.getByRole('textbox', { name: 'First Name *' }).click();
+  await page.getByRole('textbox', { name: 'First Name *' }).fill('Randomname');
+  await page.getByRole('textbox', { name: 'Last Name *' }).click();
+  await page.getByRole('textbox', { name: 'Last Name *' }).fill('Randomlastname');
+  await page.getByRole('button', { name: 'Address Lookup' }).click();
+  await page.getByRole('textbox', { name: 'Postcode *' }).click();
+  await page.getByRole('textbox', { name: 'Postcode *' }).fill('B33 8TH');
+  await page.getByRole('textbox', { name: 'Building Name/Number' }).click();
+  await page.getByRole('textbox', { name: 'Building Name/Number' }).fill('2');
+  await page.getByRole('button', { name: 'Address Lookup' }).click();
+  await page.getByLabel('Select an address').selectOption('2, Abby Rd, York, York, B33 8TH');
+  await page.getByRole('button', { name: 'Confirm Address' }).click();
+  await page.getByRole('button', { name: 'Pick date' }).click();
+  await page.getByLabel('year').selectOption('1999');
+  await page.getByLabel('month', { exact: true }).selectOption('September');
+  await page.getByText('16', { exact: true }).click();
+  await page.locator('.gwt-TextBox.jbss-empty-textbox').click();
+  await page.locator('.gwt-TextBox.jbss-empty-textbox').fill('07132534786');
+  await page.getByRole('checkbox', { name: 'press spacebar to check' }).check();
+  await page.getByRole('button', { name: 'Create', exact: true }).click();
+  await page.goto('https://10.109.32.190:9444/common/uobject.jsp?tab=_Summary&object=8176287611560464505');
+  await page.getByRole('link', { name: '10000003801' }).click();
+  await page.getByText('Customer Account Number10000003801').click();
+  await page.getByRole('tab', { name: 'Billing Accounts' }).click();
+  await page.goto('https://10.109.32.190:9444/common/uobject.jsp?tab=_Billing+Accounts+++&object=8176287611560464505');
+  await page.getByRole('button', { name: 'New Pay Monthly Billing' }).click();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
+  await page.getByRole('button', { name: 'New Payment Instrument' }).click();
+  await page.locator('[id="9153493802013161822"]').click();
+  await page.locator('[id="9153493802013161822"]').fill('182794');
+  await page.locator('[id="9153538650913155156"]').click();
+  await page.locator('[id="9153538650913155156"]').click();
+  await page.locator('[id="9153538650913155156"]').fill('90781730');
+  await page.locator('[id="9153493802013161855"]').click();
+  await page.locator('[id="9153493802013161855"]').fill('kalamona');
+  await page.getByRole('checkbox', { name: 'Use as Payment Mandate for' }).check();
+  await page.getByRole('button', { name: 'Create' }).click();
+  await page.getByRole('link', { name: 'Customers' }).click();
+  await page.getByRole('tab', { name: 'Residential Customers' }).click();
+  await page.getByRole('textbox', { name: 'Customer Account Number' }).click();
+  await page.getByRole('textbox', { name: 'Customer Account Number' }).fill('10000003801');
+  await page.getByText('Search', { exact: true }).click();
+  await page.getByRole('link', { name: 'Mr Randomname Randomlastname', exact: true }).click();
+});

@@ -1,0 +1,592 @@
+{
+  "version": "4.8.0",
+  "initializationStatus": "active",
+  "templateName": "NC AI Workplace",
+  "lastUpdate": "2026-10-01T15:23:01Z",
+  "templateSource": {
+    "url": "https://git.netcracker.com/DEMO.SE.AI/nc-ai-workplace.git",
+    "branch": "master"
+  },
+  "apmVersion": "0.32.0",
+  "apmVersionExpected": "0.28.0",
+  "apmVersionCheckedAt": "2026-10-01T15:23:15.894Z",
+  "description": "Core template version tracker - DO NOT MODIFY MANUALLY. v4.8.0 — Workplace documentation reachable from the agent surfaces. The template ships twelve user-facing guides under docs/**, but almost nothing in .cursor/ pointed at them: no skill or command told an agent to read ARCHITECTURE.md, PRESENTATION.md or INITIALIZATION.md, and the one working resolution recipe was hardcoded to APM_PACKAGES.md and duplicated verbatim in apm-packaging/SKILL.md and package-new.md. Because docs/** is \"optional\": true, is never written by /initialize, and is refreshed by /update-workplace only when the project already has it, those guides are absent from most initialized projects — an agent working in a real project could not read them at all. (1) NEW Core reference .cursor/skills/project-initialization/references/workplace-docs.md: a map of all twelve documents (purpose, read-it-when trigger, verified anchors) plus a generalized five-tier resolution contract for any docs/** path — local workspace, local template clone at .cursor/.temp-update/, HTTPS raw, authenticated sparse git clone, then degrade honestly (name the document, print the BLOB URL, answer from .cursor/ references, log an Open Gap, never invent content). It lives under .cursor/, so unlike docs/** it ships into every project. (2) NEW Core script .cursor/skills/project-initialization/scripts/fetch-workplace-doc.js implements tiers 0-3 (Node, not PowerShell: cross-platform in one file, and it avoids the two Windows PowerShell 5.1 traps documented in 4.5.2). It builds RAW and BLOB URLs from templateSource, and treats HTML, a redirect to a sign-in page, 401 or 403 as an auth wall rather than a missing document — git.netcracker.com is a private GitLab, verified live during this change, so an unauthenticated fetch returns a sign-in page. Tier 3 is opt-in via --allow-clone. Exit 3 with the BLOB URL printed is the honest-degradation path. (3) Thin pointers added to orchestrator.mdc (new Workplace Documentation section, +746 bytes on the only alwaysApply surface — this is what makes the map discoverable during ordinary post-initialization work), the project-initialization / project-update / documentation-management / code-quality-standards / apm-packaging skills, and /initialize, /quick-init, /update-workplace, /docs-sync, /package-new. The duplicated APM_PACKAGES.md recipe now delegates to workplace-docs.md in both places, each keeping its literal fallback URL and its APM anchor table. (4) Link-form rule, now written down in workplace-docs.md section 7: inside .cursor/**, every link into docs/** MUST be an absolute https:// URL; inside docs/**, links between documents stay relative; mdc: stays reserved for .cursor/** to .cursor/** links. Nineteen existing links violated it. Since docs/core/ is a workplace-owned prefix in validate-doc-links.js and is absent from its GENERATED_TARGETS, and --scope=workplace is the default in an initialized project, each was a blocking missing-file finding in any project without docs/ — able to fail the /initialize Phase 7.5 link gate, /docs-sync Steps 4/9, and /update-workplace Phase 7. All converted (28 link sites across 11 files); the cross-reference graph entries in registry.md, which describe docs-to-docs links, were deliberately left relative. coreFiles 94 to 96. Migration label: none — every change is a Core-file replacement delivered by the standard copy (core-update.md Step 3 copies references/ and scripts/, Step 1 the .mdc rules, Step 4 the commands, Step 8 the manifest), and migrations.available is unchanged. Builds on v4.7.0 — Pre-release audit of the 4.5.2/4.6.0 port. All four unreleased versions (4.5.1 → 4.7.0) ship together, so every artifact ships in its 4.7.0 form; no new migration (the Core copy delivers everything, and migrations.available is unchanged). Confirmed and fixed before release: (1) this manifest had been finalized as if the template were a user project (initializationStatus 'active' + computed hashes, from running the -Apply acceptance check in-repo), which routes a fresh clone's /initialize straight to the Updater, arms the docs-sync stop hook inside the template, and narrows validate-doc-links' default scope — restored to 'fresh' + 'pending'; the -Apply check must run against a scratch copy. (2) Phase 1.7-APM step 5.0b invoked validate-apm-install.ps1 unparameterised before the install and therefore failed every fresh non-BA run; the script gained -PreInstall (inherited-state checks only) and 5.1a keeps the full gate. (3) The Part 3.5 gate could silently pass with empty context skills via the documented --required-from form, whose selection file Phase 1.7-APM is required to delete; check-guidelines-specificity.js now exits 2 on an unusable explicit --required-from, guards --min against NaN, falls back to the two coreContextSkills, and reads only *-context names. (4) /update-workplace never copied .cursor/skills/*/scripts/ (core-update.md Step 3 does now) and gated migrations to Major updates only — 4.5.x→4.6.0 is Minor, so v4.5.1/v4.5.2/v4.6.0 were all unreachable; Phase 2 now runs on every update type and decides from pendingMigrations. (5) codebase-analysis/SKILL.md still mandated the built-in explore subagent for Phase 4, which writes nothing; it now dispatches codebase-analyzer wherever a later phase reads an artifact. (6) Phase 6 Part 2 gained Step 0 (install the owning package for a detected-but-missing domain BEFORE writing answers); /quick-init Step 4.5.b.1 offers detection-driven packages with evidence. (7) coreFiles grew 83→94, covering every Core file the updater overwrites (docs/** and CHANGELOG.md flagged optional). (8) Cross-platform PowerShell rule fixed in environment-setup.md (pwsh where it resolves, else powershell -ExecutionPolicy Bypass -File; no interpreter = Open Gap, never a passed gate); five surviving '& script.ps1' call sites converted; the v4.5.2 migration's pwsh rewrite rescoped to project-owned documents and gated on powershell resolving. (9) Script robustness: registry-source merge precedence un-inverted (builtin wins again), BOM/shebang and state.json round-trip fixes, compute-hashes.sh counters, optional flag preserved on write by both hash scripts, validate-analysis.js item-level schema checks. Builds on v4.6.0 — Initialization cost and structure. The phase that scanned a repository inline, and the three reference documents nobody could read selectively, were the two largest avoidable costs in a full /initialize run. (1) Analysis artifact model: Phase 4 dispatches one codebase-analyzer subagent per detected component, and each writes .cursor/project/analysis/<component>.json (schema: .cursor/skills/project-initialization/assets/analysis-report.schema.json) plus <component>.md, returning at most a 25-line summary. The orchestrator merges the summaries into analysis/index.json (component registry + per-component status/coverage/counts/gaps + a delegationMode of parallel-subagents | inline-json | sequential-inline + a repository-level coverage map) and validates the wave with the new scripts/validate-analysis.js, which blocks on two classes (structure and shallowness, exit 1) and warns on a third without changing the exit code (budget overrun): structure, budget overrun, and shallowness (a backend with zero entities and zero endpoint groups, a module literally named 'service', coverage 'partial' with an empty gaps[]). The .md report is never read back by the orchestrator; Phases 5 and 6 read only the JSON fields they need. Artifacts are project-owned and committed, absent from coreFiles, and ignored by the docs-sync hook. (2) Subagent contract: references/subagent-contract.md is now the single source of truth for every dispatch (Phase 4, Phase 5 Part 1.5, Phase 6 API sub-analysis, /quick-init Step 10) — seven mandatory brief blocks, hard budgets (60 files per component, 400 md lines, 30 KB json, 25-line summary, one automatic retry), parallel dispatch in a single tool-call message, foreground only, and two documented fallbacks (inline-json when a write is declined, sequential-inline when delegation is unavailable). A fifth Core agent, .cursor/agents/codebase-analyzer.md, is the only subagent in this template permitted to write files; its scope is bounded by the brief's CONSTRAINT block. Critically, readonly: true was being passed as a Task tool parameter in six places although no such parameter exists (readonly is frontmatter of a custom agent in .cursor/agents/, defaulting to false) — an agent obeying that instruction literally would conclude it may not write and fall back to the inline scan the contract exists to prevent. Every occurrence was removed and replaced with a prompt-level constraint. (3) Phase document split: codebase-analysis.md (1151 lines), requirements.md (1193) and configuration-updates.md (1631) became short routers plus 19 step files under references/phase-4/, phase-5/ and phase-6/. SKILL.md carries a step→file routing table with an explicit instruction to read the step file, never the whole phase directory. Phase 1.6 (read-only inventory of .cursor/commands/) was present in INITIALIZATION.md and the commands but missing from SKILL.md and the ledger checklist, so the flow read as 14 phases in one place and 15 in another; it is now listed in both. (4) Phase behaviour: the Phase 6 API sub-analysis is conditional on analysis/index.json → coverage.api (skip when covered and fresh, narrowed brief when stale or partial, full brief only when absent) — this removes the duplicated controller scan that backend-context and api-context each triggered in the same run; Part 3 has a mandatory render order with coding-standards-context first and sole owner of naming, error handling, code organisation, commit format and documentation style, every other domain referencing rather than restating; Part 3.5 gained Step 3b verifying render order, ownership and that cross-domain pointers resolve. (5) Resumability: safe stop points after Phases 4, 6 and 7.5, with resumption keyed on state on disk (ledger checklist + artifacts, each ticked phase re-validated against its artifact) rather than on parsing a --resume flag, since Cursor's slash-command argument handling is not a documented contract. New migration v4.6.0-init-restructure registers the step files in an existing project's coreFiles map, creates .cursor/project/analysis/, and reports project-owned prose that deep-links into a former monolith. Builds on v4.5.2 — Reliability and diagnostics for initialization: every failure below was observed in the field and cost a phase to diagnose. (1) prepare-apm-packages.ps1: the git fallback redirected git's stderr with 2>&1, and under Windows PowerShell 5.1 with $ErrorActionPreference='Stop' git's ordinary progress output aborted the script; stderr now goes to a temp file and success is judged solely by $LASTEXITCODE, with a retry via plain shallow clone when the sparse clone fails, and the resolved source (https-raw / git-clone / offline-snapshot) is printed explicitly so an offline snapshot is never mistaken for a live fetch. (2) validate-doc-links.js: crashed on a tracked file deleted from the working tree but not yet staged (now filtered by fs.existsSync), and gained --scope=workplace|project|all — in an initialized project only Workplace-owned documents block by default, so pre-existing team docs the run never touched cannot fail an /initialize or /docs-sync gate. (3) compute-hashes.ps1/.sh: coreFiles entries may now carry \"optional\": true, recorded as hash \"missing\" and counted separately instead of blocking -Apply, so -AllowMissing stays reserved for genuinely unexpected gaps; the template's own docs/** entries are flagged optional and a stale .cursor/rules/components/README.md entry was dropped. (4) NEW Core script validate-apm-install.ps1 — an apm install health gate for the upstream defect where a poisoned apm.lock.yaml entry (version: unknown, non-apm_package package_type, or the empty-input content_hash) makes every later install print (files unchanged) and deploy nothing, leaving an empty package skeleton that passes existence checks and only surfaces phases later at the Phase 6 gate; wired into Phase 1.7-APM as step 5.0b (pre-flight over inherited state) and 5.1a (post-install), the upstream cause is documented in apm-workflow.md section 5 (Lockfile). (5) NEW Core script check-guidelines-specificity.js — the Part 3.5 placeholder check proves a guidelines.md was rendered, not that it says anything about this project; the script honours requiredContextSkills literally (--required / --required-from, so a missing or empty skill directory is a failure rather than an absent row), separates install failures from render failures, enforces that only coding-standards-context defines cross-cutting rules, and counts concrete project vocabulary harvested from the Phase 4 analysis artifacts. Part 3.5 gained a three-row diagnostic table (package not installed / installed but empty / not rendered) and a detection→owning-package table. (6) /docs-sync now syncs context skills in Project Mode: docs-sync-check.js lists both initialization-owned artifacts per affected skill (project-config.json, then references/guidelines.md) in reconciliation order, and the workflow verifies the result with check-guidelines-specificity.js. (7) pwsh was invoked bare in Core docs and scripts although Windows ships only Windows PowerShell 5.1 as powershell; every invocation is now powershell -ExecutionPolicy Bypass -File …, and environment-setup.md documents the two 5.1 traps (2>&1 on native executables, Get-Content rendering correct UTF-8 as mojibake). (8) The offline registry snapshot .cursor/rules/packages-index.json was regenerated from the live index (19 → 21 packages, versions 0.25.0 → 0.28.0+; new: markup, worklog-kit) and the apmPackages name lists were resynced to it; the frontend-slides standaloneOnly drift is resolved upstream. New migration v4.5.2-init-reliability refreshes the scripts and re-runs both gates in existing projects on /update-workplace. Builds on v4.5.1 — Module activation is verified by artifacts, not by markers. Field-reported defect: APM deploys a module's scripts/ folder twice (package cache with the sibling runtime/ payload, and .cursor/hooks/<pkg>/scripts/ without it); the packages' activate.{ps1,sh} resolve their root positionally and guard copies with bare existence checks but write .workplace/activated/<pkg>.marker and status:active unconditionally, so a run from the hook-side copy extracts nothing yet reports success — and marker idempotency then makes every correct re-run a no-op. Template-side fix: new Core script .cursor/skills/project-initialization/scripts/verify-apm-activation.ps1 (classifies each installed type:module package as OK / NOT_ACTIVATED / FALSE_POSITIVE / PARTIAL / PACKAGE_INCOMPLETE by comparing the runtime/ payload with the project tree; -Repair clears false markers + state.json entries; -Json for gates; ASCII-only for Windows PowerShell 5.1 ANSI-read safety); /initialize Phase 1.7-APM gained step 5.2 which resolves each module's package root, invokes activation directly and gates on the verifier (activation was previously deferred to an inert SessionStart hook, i.e. never happened); apm-workflow.md gained §6.1 (resolve <package-root> by evidence — the directory holding both apm.yml and runtime/ — plus the .cursor/hooks decoy warning) and §6.2 (verify by artifacts); apm-packaging/SKILL.md gained the activation-script authoring contract (evidence-based root resolution, hard-fail on missing payload, marker written last after postcondition checks, abort on error) and a smoke test asserting the hook-side copy exits non-zero without a marker; APM_PACKAGES.md activation paths corrected throughout (apm_modules/<pkg>/ is not a real path for dict-form git deps). New migration v4.5.1-activation-verification repairs existing projects on /update-workplace. The packages-side cause is documented in apm-workflow.md sections 6.1-6.2. Builds on v4.5.0 — APM 0.28.0 baseline: apmVersionExpected bumped 0.26.0 → 0.28.0 after an isolated smoke test of apm-cli==0.28.0 (2026-08-07). AGENTS.md co-ownership moved from the assumed per-package <!-- APM:<name> begin/end --> marker contract (never emitted by apm compile) to APM's managed_section mode: Phase 1.7-APM now writes compilation.agents_md.mode: managed_section into the generated project apm.yml, and agents-template.md wraps the APM-managed region in <!-- apm:start --> / <!-- apm:end --> markers; Phase 7 preserves hand-written content outside the markers. SessionStart documentation corrected: APM 0.28.0 DOES write SessionStart into .cursor/hooks.json (+ apm-hooks.json sidecar) but verbatim in the Claude shape (PascalCase keys, nested hooks arrays, unresolved extensionless ${PLUGIN_ROOT}/scripts/activate), which Cursor's hooks schema does not execute — direct scripts/activate.{ps1,sh} invocation remains the supported path. Documented new 0.28.0 surface: grok-build first-class target (+ grok-cloud experimental), object-form skills: manifest field, aliased ref-bump re-download fix, apm pack empty-deps fix, --legacy-skill-paths accepted by install/compile/pack (not update). New migration v4.5.0-apm-0-28-baseline patches existing projects on /update-workplace. Authoring gates and their known blind spots for the Workplace-Agent-Packages repo are documented in the apm-packaging skill. v4.6.0 removed docs/core/APM_0.28_PACKAGES_FOLLOWUPS.md; its content now lives in apm-workflow.md (sections 5, 6.1-6.2) and the apm-packaging skill. Builds on v4.4.0 — Security extraction: the security-auditor agent, /security-validate and /security-update commands, and the security-compliance skill (5 guide references + security-sources.json) were removed from Core and are now shipped exclusively by the standalone-published `nc-code-security-audit` APM package (role-matched + optional, offered in /initialize Phase 1.7-APM Pass A.5 for backend/frontend/fullstack/qa). `docs/core/Security_Validation_Guide.md` was deleted; its content lives in the package's own README.md and docs/SECURITY_AUDIT_GUIDE.md in the Workplace-Agent-Packages repo. Core inventory cut to 4 agents / 6 commands / 8 skills. Phase 5 Part 5 (BASS Security Guides intake) in /initialize is now conditional — it only runs when `nc-code-security-audit` was installed during Phase 1.7-APM (which precedes Phase 5); otherwise it is skipped with a Decision Log Q-block and an `apm.yml` install hint. A new migration `v4.4.0-security-extraction` removes the four Core artifacts from existing projects on /update-workplace, backing up (and offering to restore) any project-customized `security-sources.json` before optionally installing the package. Builds on v4.3.0 — Quick Init APM bootstrap + role-agnostic package offer: /quick-init gained an explicit graceful Phase 0 APM CLI gate and a new Step 4.5 that resolves the Workplace-Agent-Packages registry index.json at runtime (live HTTPS → authenticated git → offline snapshot) and offers every role-agnostic package (empty targetRoles) as one batched multi-select, installed via APM_LEGACY_SKILL_PATHS=1 apm install; prepare-apm-packages.ps1 gained a -RoleAgnosticOnly switch. v4.2.0 — docs-sync hook v2: reliability, commit-awareness, and stack-configurable categories. `.cursor/hooks/docs-sync-check.js` is now Core-owned (added to coreFiles below) and delivered to existing projects by a new /update-workplace Step 4.5, which copies the script and surgically patches only the `stop` array of `.cursor/hooks.json` (never a wholesale copy, respecting APM's ownership of that file and a user's `stop: []` disable choice). The hook's git layer now shells out via execFileSync with cwd pinned to CURSOR_PROJECT_DIR, NUL-delimited (-z) and --relative paths throughout, and an explicit stderr diagnostic when not inside a git work tree. It tracks a `lastSyncSha` (independent of the existing files/timestamp TTL) so committed-and-pushed changes are detected via `git diff <lastSyncSha>..HEAD`, not just the dirty working tree; invalid/unreachable shas (rebase, force-push, shallow clone) safely reseed to HEAD without scanning history, and a new `--record-state` CLI mode lets `/docs-sync` snapshot its own output so the hook doesn't immediately re-recommend on the files it just touched. Detection categories, dependency files, build-config files, and ignore patterns are now extensible via an optional, project-owned `.cursor/hooks/docs-sync-config.json` (additive only, never overrides the built-in defaults) — generated per-stack by /initialize Phase 3 for new projects and backfilled for existing ones by the new `migration_v4_2_docs_sync_config` migration (both propose config, require approval before writing). `validate-doc-links.js` gained git-aware document enumeration (`git ls-files -co --exclude-standard`, with a `--all` flag to force a full filesystem walk) and a `--strict` flag, and is now wired into the `/docs-sync` workflow instead of being a standalone, easily-forgotten script. Builds on v4.1.0 — CHANGELOG.md at project root; packages catalogue in standalone Workplace-Agent-Packages repo. v4.0.0 — APM migration. The dual Workplace module system (role-packs + full modules with /moduleActivate) is replaced by APM packages in the standalone Workplace-Agent-Packages repo (one <id>/ directory at that repo root). Every role-pack and full module is now an APM package consumed via object-form deps (`git: <apmPackages.registryRepoUrl>`, `path: <id>`, `ref`); installation is APM's `apm install` with APM_LEGACY_SKILL_PATHS=1 so skills still land at .cursor/skills/<name>/ (preserving Phase 6 Part 3.5). The Modules_Registry/ tree, .cursor/modules/, .cursor/skills/module-activation/, .cursor/commands/moduleActivate.md, docs/core/Modules/, prepare-role-packs.ps1, and the .cursor/rules/role-packs-state.json artifact were all deleted. Initialization adds Phase 0 (APM CLI bootstrap: detect / install via curl/irm/brew/pip / persist apmVersion) and renames Phase 1.7 to Phase 1.7-APM with three registry-source modes (built-in HTTPS / external URL / both). Full modules ship scripts/activate.{sh,ps1} run on first session by a SessionStart hook in .apm/hooks/activate.json (idempotent via .workplace/activated/<pkg>.marker). New /package-new command + apm-packaging skill scaffold packages from existing modules, single skills, or blank templates and finish with apm compile --validate + apm pack --dry-run + packages/scripts/regenerate-index.ps1. AGENTS.md regeneration in Phase 7 now preserves every <!-- APM:<name> begin -->...<!-- APM:<name> end --> block written by apm compile; Phase 1.5 still writes the base + role MCP servers to .cursor/mcp.json before APM (additive merge, CI rejects MCP-name collisions). New artifacts shipped: packages/_schema/{x-workplace,index}.schema.json, packages/_templates/{role-pack,module,skill}/, packages/index.json registry, packages/scripts/regenerate-index.ps1, .github/workflows/packages.yml CI gate, .cursor/skills/project-initialization/references/{apm-workflow,apm-bootstrap,phase-1-7-apm}.md (apm-workflow.md is the single source of truth for the APM workflow; every APM-aware command/skill/rule links to it), .cursor/skills/project-initialization/scripts/prepare-apm-packages.ps1, root apm.yml, docs/core/APM_PACKAGES.md (replaces MODULES.md). Builds on v3.1.0 — Thin Project Init Ledger (source-of-truth split). Refactors .cursor/project_init.md from a mixed knowledge base into a compact initialization ledger: state, artifact pointers, phase checklist, Supplemental Source Manifest, User Answers & Decision Log (Q-block audit trail per question), Open Gaps, and Initialization Summary. Operational facts (stack, architecture, components, performance, constraints, security, API documentation, codebase analysis) now live in authoritative artifacts (.cursor/rules/development.mdc, per-domain project-config.json, security-sources.json, metadata.json). Phase 6 reads the Supplemental Source Manifest to enrich rendered guidelines.md with Phase 4/5 collected knowledge. Smart Merge during /update-workplace preserves the Decision Log verbatim with a new Phase 5 Step 7 HARD GATE verifying byte-identical preservation. Migration v3.1.0-thin-project-init-ledger converts legacy expanded project_init.md files safely. Builds on v3.0.0 — Lean Core, Role Packs & Smart Initialization (single consolidated release). The release covers five areas: (1) Role-Packs Refactor — 7 role-specific agents, 9 commands and 14 skills moved out of Core into Modules_Registry/role-packs/ (frontend-developer, backend-developer, api, performance, qa, business-analyst); Core inventory cut to 5 agents / 8 commands / 9 skills; DevOps role retired (covered by always-Core infra-specialist + infrastructure-context); .cursor/commands/.templates/ removed; activation now copies role-pack artifacts into .cursor/ as-is when a matching role is selected; coding-standards-context and infrastructure-context designated coreContextSkills with mandatory guidelines.md generation. (2) TDD Workflow Integration — standalone .cursor/rules/tdd_workflow.mdc removed; universal RED-GREEN-REFACTOR discipline merged into .cursor/skills/code-quality-standards/SKILL.md; project-specific TDD policy (mandatory categories, framework, coverage thresholds, output dir, CI integration) lives in coding-standards-context/references/template.md (rendered into references/guidelines.md during Phase 6) with a new testing.* block in project-config.json. (3) Adaptive Initialization + Phase Reflection Checkpoint — NEW vs EXISTING auto-detected from .core-version.json + file signals (no ritual confirmation question; one edge-case prompt only when signals==1); MANDATORY Phase Reflection Checkpoint after Phases 1, 2, 4, 5, 6 with four-question self-review and 1–3 name-referencing Smart Questions citing concrete modules / entities / endpoints / SDKs from Phase 4; Phase 4 Explore prompt now requires business modules + top entities + top endpoint groups + named integrations (sections 8–11); Phase 5 rounds become skip-by-default in EXISTING_PROJECT when Phase 4 covers them; compliance frameworks (PCI DSS / HIPAA / GDPR / SOC 2) pre-checked from detected integrations; Phase 6 adds per-domain Reflection Step 0 with HIGH/MEDIUM/LOW confidence scoring → 0–3 questions per domain; Phase 2 metadata accepts package.json + README silently when consistent. (4) Drop Parallel Customization System — removed .cursor/rules/project_customizations.mdc, .cursor/rules/project/.templates/, the project-* prefix convention, the Project Customizations section in orchestrator.mdc, Phase 6.5 customization steps, and .cursor/rules/project/routing.mdc; .cursor/rules/project/ now holds only metadata.json; project adaptation consolidated into three native channels: (a) editing role-pack artifacts in place after /moduleActivate (project-owned, survive /update-workplace), (b) Project Conventions section in root AGENTS.md, (c) per-skill project-config.json + references/guidelines.md. (5) Phase 1.6 Synthetic Command Generation Removed — Phase 1.6 used to template six generic workflow command files (review.md, bugfix.md, onboard.md, feature.md, refactor.md, test.md) into .cursor/commands/ from inline string snippets; that mechanism has been removed. Phase 1.6 is now a read-only inventory of the 8 Core commands shipped with the Workplace template (as of v3.0.0: initialize, quick-init, moduleActivate, update-workplace, taskmaster-init, docs-sync, security-validate, security-update; since v4.0.0 package-new replaces moduleActivate). Phase 1.7 (role-pack + full-module activation, byte-for-byte copy) is the only mechanism that puts new files into .cursor/commands/ during initialization.",
+  "coreFiles": {
+    ".cursor/rules/orchestrator.mdc": {
+      "hash": "f75023f177980aaa191914488f17e5f387a9dc595c7fa695b5f94ddcd59b6242",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/rules/development.mdc": {
+      "hash": "845b24fc7c3d718f0cf35f64e053d6f551a14973ab84903bb0a7c1522b9f34ff",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/rules/taskmaster/dev_workflow.mdc": {
+      "hash": "5ce0c8df73b8c7853103a01ac485c9ebeab929188381f36c192fc1892d8a1b4f",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/rules/taskmaster/taskmaster.mdc": {
+      "hash": "65bd8cdee6961328a0885edc80c8be10895b81dfe24ac2bb150c6f54fb839d09",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/agents/initializer.md": {
+      "hash": "1a590f6e057aae23e3b231786275bb2875cd64286df8809e7c1bf21a161b4654",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/agents/documentation-sync.md": {
+      "hash": "a1dcd27c185652f748f132435bfc01bc101178fa7634ae937d909cd9f7b0f95e",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/agents/infra-specialist.md": {
+      "hash": "913e7578424315d1e16f1782c588c6bc9ac0c54d207cdaaed52105f918591084",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/agents/project-updater.md": {
+      "hash": "9225441c10e2ce0cf20b874a319563e30e1cb29ede4aa66bcdad5418b35f6362",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/agents/codebase-analyzer.md": {
+      "hash": "3a7756ee8ebf9a24bbea1de48be01e65715e9bceb58bdba701daaa3bc9db0963",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/SKILL.md": {
+      "hash": "fadb9e0af0e92112173b4bc853d8ad6818638f7b2ad01da24650f852586ae927",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/agents-template.md": {
+      "hash": "6b97cf50d3242503c49d09d60bf1d14a8c27bc61a6be7e3567491f7e2f33478d",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/role-commands-template.md": {
+      "hash": "ac132c31a387a77f133549822b41c4120f7c5d21d1b6549f0a290e1dfceee42c",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/user-roles-mcp.md": {
+      "hash": "9fa7963c7e19878664e79fcbc8fe7cf08198bda3167eb3caae4a1b3d74ada4f7",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/configuration-updates.md": {
+      "hash": "250cd565c00c3c2349999a4090da6e5b924a382fd90f5fb3151eb19b077d9c2c",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/quick-init.md": {
+      "hash": "abe28cf92840674e7ed9c567ee55f194532462ffa848de9b52c96705068d2f25",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/environment-setup.md": {
+      "hash": "2a982739712c8fc295bb0d957661b00058a7a0375842311733b55079fadd45db",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/documentation.md": {
+      "hash": "af3d266214c42bf58523c7fffcfbe17928e0bbaf430d7b36788e1d4b62b372e2",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/mode-detection.md": {
+      "hash": "a712f4ae51aa5b5170d3519fa2d3897f5bf8e5a3ed2c360aecbb31354f856b60",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/metadata-collection.md": {
+      "hash": "d2a2247b34bb9c3be9b6031b8aa29cb712fed4de6505d3a91b870ffb0ca41206",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/stack-configuration.md": {
+      "hash": "e983d022d126f870b1b3f6f24269d2cfeb0a44c3bf5ccde63fa78abb6eea55ca",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/codebase-analysis.md": {
+      "hash": "bf95d997cea286b68edac17ef2128eab2618029631dd5f94cdf32b2c2869470d",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/subagent-contract.md": {
+      "hash": "d356403f6055280159d40aaac2d12dc6a8a61ad206a4b486e25b5af67e748ee1",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/workplace-docs.md": {
+      "hash": "454e4cd6cba1a221eed1cff367d8f052026652de6248043aea8fe53f18c734db",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-4/ba-mode.md": {
+      "hash": "aceb069bf13e3cd7562c62a4a89dcea1c10fcf7f1d1678a92c55006fb765095e",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-4/dispatch.md": {
+      "hash": "c783e392cae7854476bd637ceea918fb3fa07e1b3b0b5b34e65b68cd220a41fd",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-4/merge-and-persist.md": {
+      "hash": "9265c77613dd17bd4f36c93d40f3d764af8d45fb5bf0bcbe71694123ab363eec",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-4/prompts.md": {
+      "hash": "89f001faf6a8e73f13f090f1233dc73c4dce30145de8dac5c1780623598d9471",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-4/reflection-and-gaps.md": {
+      "hash": "7c81a53af55a2bc1c16dc102c800c9e9d561db442b9ef9a9c5fa3a26171d6e42",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/ba-mode.md": {
+      "hash": "2046fa4d0a38b0ca0d631961ba2ebd087887ad6d44e440327aa4991b7aac3eb6",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/overview.md": {
+      "hash": "b397e2f2e0151c04e844f1946dea55affd568e48f4ff430919b42ddbbdf9a191",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-1-5-api-docs.md": {
+      "hash": "4d6a7b12de2ffa5726e6be281bc817a1a6478b78557128b84a20aa7ff80303ba",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-1-components.md": {
+      "hash": "e2c100017da01667d336a5f452451a69cfedb683f94f9e3642d49a84179faefb",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-2-architecture.md": {
+      "hash": "ef1900231681d695755308bd58216f3df59871208c78ffaf12dbdf41f63ff0e2",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-3-performance.md": {
+      "hash": "cb33b966b8e78e48618d45db1855b1d3c3d291cd5c635866550efb99aa6606d5",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-4-general.md": {
+      "hash": "eb7166f1f29421bc8ac0a0fa1b165dfa8509f9bbbdd2adec513fad2c5879ee53",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-5/part-5-security.md": {
+      "hash": "bdd2378f236298459ada931aa885d508bbea85771ededa7344cb9340247c1a1c",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/api-analysis.md": {
+      "hash": "39f8a6c178ee950c4d9313162eeee1b37f052e1cebc28712b9d94231f8bffbfd",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/overview.md": {
+      "hash": "81ca205d464ee7e7d418dcab6bf04149ebaa97a5c200c1b70374395d6dd6cce5",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/part-1-development-mdc.md": {
+      "hash": "775b4e721bf923b8e65d19d4784c8531955168d67980580c556e392618696584",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/part-2-domain-skills.md": {
+      "hash": "702e5ba0b79f0be78be13fa081070e49d3c681fb8d8805cc50a417cf7421696a",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/part-3-5-verification.md": {
+      "hash": "7b9f13f5846d9b2a147b4a259850a70d33b30668030759d26745e638c78dab04",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-6/part-3-guidelines.md": {
+      "hash": "237c514292632d1a6914634a9c0e13ba0a139e090afbdd3b2a99cd3b0e0db799",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/requirements.md": {
+      "hash": "e5f969ca1c95f0472374d506894cf6e9ec797d2ff45148c4465428eb071e171a",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/compute-hashes.ps1": {
+      "hash": "0b546ebf354b7406c7c02884b75face2c8daf3a13b4ab7dbf91b6b962f9b84ed",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/compute-hashes.sh": {
+      "hash": "90e227d609c80fcb3bd783319f0da890892acfa3567c76479bec15ec2604c8ed",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/validate-doc-links.js": {
+      "hash": "933efa92332c41a1de2cd5857d11252ebeb37822aa2156efed2f506c41f05815",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/verify-apm-activation.ps1": {
+      "hash": "6e925da27e9e71cf9e2fedbbb11809c6d8e26143e2d9e03e2fc68cf30de688fb",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/validate-apm-install.ps1": {
+      "hash": "dabb48c0ccf5e1a4a88139518fe8eb0a4087d8282d61d3ed7f2b8485aee1ece5",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/validate-analysis.js": {
+      "hash": "a301ce348853a1250fb20cfa27ae3e36efa55302871e113ae119170d5d8dc923",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/assets/analysis-report.schema.json": {
+      "hash": "dc8baa60cd1abf469e5d2d171bd423c857e49614dfeb2b6460e0bd7e88a344cf",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/check-guidelines-specificity.js": {
+      "hash": "1a4a480e04aec40c1fe5aba7dbdd5905f82ee5c2c5bb7567e0872d3a48e16e5d",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/fetch-workplace-doc.js": {
+      "hash": "c581a8e3d73ec767c7e001e96568d83ca901d91577fd34f49b4b47f701d6f0ed",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/hooks/docs-sync-check.js": {
+      "hash": "8dfda56d729dcb11d6adf0e55d29744f951bbdd06dc5d5a15ebd56d87e74f8cc",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/documentation-management/SKILL.md": {
+      "hash": "df1bc04cec489496baf5b9ad9b9f637d792173848416bb71e926dc14314ae88f",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/documentation-management/references/registry.md": {
+      "hash": "f591363deedeef58920756572c0a336f817acb46dd21a58351fdb155c7880386",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/documentation-management/references/sync-workflow.md": {
+      "hash": "3f16a8a1f103b3c2e5936b5d20728577ef1d510a05411c998dfc08e20ac685ba",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/documentation-management/references/markdown-standards.md": {
+      "hash": "6b392353af0be197d0a969659d996db0e61063f2e905c1e342fc6105d8bd9d07",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/codebase-analysis/SKILL.md": {
+      "hash": "04fbc7b0150212918b1c241b6bbde9d85910d4f6a0c8e8c879c72f0cd41f9893",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/code-quality-standards/SKILL.md": {
+      "hash": "eb1c35acbd4de1dd19e5f9353ec701e7f88af4eab30d8cbb82da94f49daa4918",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/infrastructure-context/SKILL.md": {
+      "hash": "070a112c3e123170bbcdafda01ff4fe2afc3d26f9075e88081dd9c08aa1b5d71",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/infrastructure-context/references/template.md": {
+      "hash": "1da10ec762a82e7b23a5093740575ee75925a72f2240dec2e9f43050f7bd3735",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/coding-standards-context/SKILL.md": {
+      "hash": "58de162719a9c1f8224bfae8724091fb29b84f299c28880cee96b2fad03c3cf3",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/coding-standards-context/references/template.md": {
+      "hash": "afa867b7e57ae1e0b554d1dd20dadc82123173131c25c36f132d83cc66d12490",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/apm-packaging/SKILL.md": {
+      "hash": "5db7f3da391914373e702a9e32022a8a2d6470ab1f2a22a075a0d779eb823c58",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/apm-workflow.md": {
+      "hash": "aa8e75beb7aa53f068dca3cc80c32d4199570c7bd4b15208bd70a2af27ea6e59",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/apm-bootstrap.md": {
+      "hash": "d89383c30cce691b625a4b4a2a0801e5ba05e92b7f0e5e6e4def52f21d1d3424",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/references/phase-1-7-apm.md": {
+      "hash": "77ab5f6e643586c87f0bf4321d4cdcc7dff5760579ba528415e9261cd39d8110",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-initialization/scripts/prepare-apm-packages.ps1": {
+      "hash": "b2ebe715017e92263899c9ef53fda5bd6ddf0cecfee963a12bc346018ea5b14d",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/rules/packages-index.json": {
+      "hash": "23ba12b3f6784cb30936b2b23eb6735023973f3d7a6e99582e142f7264d3a502",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/SKILL.md": {
+      "hash": "f8efca811d042ad9034b21b8b409ee92fbe736d5ce076f15851f25c93be229a2",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/git-source-setup.md": {
+      "hash": "b82bdf4dbd99d3da9769996208e76f1c42c465d53a8e66d25a9b9b76df7a31c5",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/detection-and-backup.md": {
+      "hash": "86b5ae4004fe943bd0c6378f27471b4dd9121298d0e17e47e468d3b2b1d40334",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/migration-and-scan.md": {
+      "hash": "dee9fc2deb343a868e08498444f0a26028aa687b4305fd2618cb7ee46e831ff9",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/core-update.md": {
+      "hash": "0df12c6b383bcab25f352142793b19d0bce9db35e97e6587139dd59b8611ba07",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/preservation-and-validation.md": {
+      "hash": "ae3a1dd60ff8fedee579fdb5fa3fa0a0108297bb50695c4e6a8ed38e36c7c531",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/skills/project-update/references/cleanup-and-report.md": {
+      "hash": "4d818327530bc1445d482f6900c0fc86303284834c25c8f23c556c01958a46a2",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/initialize.md": {
+      "hash": "704bca1741c3bbfd29d341eff8791b657df5514ddf4fce4cf0932fd607012450",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/quick-init.md": {
+      "hash": "3032e66412020ba953e58b6311f1a5f3884fdcc9e3f56eacd014560fdfbbf4bc",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/taskmaster-init.md": {
+      "hash": "7e3d292c4e74a96f136306fa84e8bdec6b607de6f730929a9db08b45cdb58db4",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/docs-sync.md": {
+      "hash": "5736a5dd5f2cb8e4dc95150d998824eef7c659cbd79e4deaf301ca14aca5246a",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/package-new.md": {
+      "hash": "cab06cded1a0f67923e9997d457bbfe3724c94dd2af73c19c89e85de0ed46574",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    ".cursor/commands/update-workplace.md": {
+      "hash": "6736051d7c7b189641930eafe1fa99ca37893ac6bfc181fecadc2bc31d41860c",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    "docs/GETTING_STARTED.md": {
+      "hash": "59025eb479c6818e83fae61f4f99b9113877499ff0aaa81b3ae5e9f1caaa07ef",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/ARCHITECTURE.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/ROLES.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/APM_PACKAGES.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/INITIALIZATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/DEVELOPMENT_WORKFLOW.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/MIGRATION_BACKUP.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/AGENT_CONTEXT_AND_DOCS_SYNC.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/CUSTOMIZATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/TDD_WORKFLOW.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/core/HOW_WORKPLACE_IMPROVES_AGENTS.html": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "docs/PRESENTATION.md": {
+      "hash": "missing",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    },
+    "apm.yml": {
+      "hash": "64438510e7d10e33a7842906b69cecbdc427f19e5c0b7942cdbf57e585f9a8ba",
+      "lastModified": "2026-10-01T15:23:01Z"
+    },
+    "CHANGELOG.md": {
+      "hash": "9da5a26e04368651ce069bb8050bbc0d051e11ae7664f20e350d48d62ec27174",
+      "lastModified": "2026-10-01T15:23:01Z",
+      "optional": true
+    }
+  },
+  "apmPackages": {
+    "registryRepoUrl": "https://git.netcracker.com/DEMO.SE.AI/Workplace-Agent-Packages.git",
+    "registryBranch": "master",
+    "registryPath": "",
+    "indexFile": "index.json",
+    "offlineSnapshot": ".cursor/rules/packages-index.json",
+    "packages": [
+      "api",
+      "backend-developer",
+      "business-analyst",
+      "code-review",
+      "devops-engineer",
+      "frontend-developer",
+      "frontend-slides",
+      "jira-defect-analysis",
+      "llm-codegen-bench",
+      "markup",
+      "nc-code-security-audit",
+      "performance",
+      "product-migration",
+      "project-scorecard",
+      "qa",
+      "shopping-portal",
+      "stub-generation",
+      "test-description-generation",
+      "test-generation",
+      "ticket-triage",
+      "worklog-kit"
+    ],
+    "standaloneOnlyPackages": [
+      "frontend-slides",
+      "jira-defect-analysis",
+      "llm-codegen-bench",
+      "project-scorecard",
+      "shopping-portal",
+      "ticket-triage",
+      "worklog-kit"
+    ],
+    "fullModulePackages": [
+      "product-migration",
+      "stub-generation",
+      "test-description-generation",
+      "test-generation",
+      "worklog-kit"
+    ],
+    "note": "APM packages live in the standalone Workplace-Agent-Packages repo (registryRepoUrl), one directory per package at the repo root, referenced as `path: <id>` (no `packages/` prefix). They are NOT deployed into Core during template install. They are installed via APM (`apm install`) during /initialize Phase 1.7-APM or by adding the package (object form: `git: <registryRepoUrl>`, `path: <id>`, `ref: master`) to the project's `apm.yml`. Role-matched packs auto-install when x-workplace.targetRoles ∩ selectedRoles ≠ ∅. Optional packs (optional:true, standaloneOnly:false) are offered in Phase 1.7-APM Pass A.5. Standalone-only packs (optional:true, standaloneOnly:true) are skipped during initialization and require manual `apm.yml` edit + `APM_LEGACY_SKILL_PATHS=1 apm install`. See .cursor/skills/project-initialization/references/apm-workflow.md."
+  },
+  "migrations": {
+    "applied": [
+      {
+        "version": "4.6.0",
+        "date": "2026-09-01T00:00:00Z",
+        "description": "SemVer minor bump. Initialization cost and structure. (A) Analysis artifact model — Phase 4 dispatches one codebase-analyzer subagent per detected component; each writes .cursor/project/analysis/<component>.json (new schema at .cursor/skills/project-initialization/assets/analysis-report.schema.json) plus <component>.md and returns at most 25 lines. The orchestrator merges summaries into analysis/index.json (registry + status/coverage/counts/gaps per component + delegationMode + a repository-level coverage map) and gates the wave on the new scripts/validate-analysis.js, which distinguishes structural errors, budget overruns and shallowness. The narrative report never re-enters the orchestrator's context; Phases 5 and 6 read only the JSON fields they need. Artifacts are project-owned, committed, absent from coreFiles, and ignored by the docs-sync hook. (B) Subagent contract — new references/subagent-contract.md is the single source of truth for every dispatch (seven brief blocks, hard budgets, parallel dispatch in one message, foreground only, inline-json and sequential-inline fallbacks). New fifth Core agent .cursor/agents/codebase-analyzer.md is the only writing subagent in the template. Six call sites passed readonly: true as a Task tool parameter that does not exist — an agent taking it literally cannot write artifacts at all, so every occurrence was replaced by a prompt-level constraint. (C) Phase document split — the three Phase 4/5/6 monoliths (1151 / 1193 / 1631 lines) became routers plus 19 step files under references/phase-4|5|6/, with a step→file routing table in SKILL.md and an explicit rule to read the step file rather than the phase directory. Phase 1.6 is now listed in SKILL.md and the ledger checklist, resolving a 14-vs-15-phase inconsistency with INITIALIZATION.md. (D) Phase behaviour — the Phase 6 API sub-analysis is conditional on index.json → coverage.api, removing the duplicated controller scan that backend-context and api-context each triggered; Part 3 has a mandatory render order with coding-standards-context first and sole owner of the cross-cutting rules; Part 3.5 gained Step 3b for render order, ownership and pointer resolution. (E) Resumability — safe stop points after Phases 4, 6 and 7.5, with resumption detected from state on disk (ledger + artifacts, ticked phases re-validated) rather than from a parsed --resume flag. Migration label: v4.6.0-init-restructure."
+      },
+      {
+        "version": "4.5.2",
+        "date": "2026-09-01T00:00:00Z",
+        "description": "SemVer patch bump. Reliability and diagnostics for initialization — mechanical fixes to Core scripts plus two new health gates, all driven by field-observed failures. Script fixes: prepare-apm-packages.ps1 no longer aborts under Windows PowerShell 5.1 because git wrote progress text to stderr (stderr goes to a temp file; success is $LASTEXITCODE only), retries with a plain shallow clone when the sparse clone fails, and prints the resolved registry source (https-raw / git-clone / offline-snapshot) so a stale offline snapshot is never mistaken for a live fetch; validate-doc-links.js no longer crashes on a tracked file deleted from the working tree and gained --scope=workplace|project|all (an initialized project blocks only on Workplace-owned documents, so untouched team docs cannot fail a gate); compute-hashes.ps1/.sh support \"optional\": true in coreFiles entries (recorded as hash \"missing\", counted separately, never blocking -Apply), the template's docs/** entries are flagged optional, and the stale .cursor/rules/components/README.md entry was removed. New Core scripts: validate-apm-install.ps1 (detects a poisoned apm.lock.yaml entry — the upstream defect that makes apm install print (files unchanged) and deploy nothing, leaving an empty package skeleton that passes existence checks — plus empty apm_modules trees and incomplete required context skills; wired into Phase 1.7-APM steps 5.0b and 5.1a) and check-guidelines-specificity.js (honours requiredContextSkills literally via --required / --required-from so an empty skill directory fails instead of being skipped, separates install from render failures, enforces coding-standards-context's ownership of cross-cutting rules, and counts concrete project vocabulary from the Phase 4 analysis artifacts). Phase 6 Part 3.5 gained a three-row diagnostic table (package not installed / installed but empty / not rendered) and a detection→owning-package table, and its hard gate now includes the specificity script's exit code. /docs-sync gained Project-Mode context skill sync: docs-sync-check.js lists both initialization-owned artifacts per affected skill (project-config.json, then references/guidelines.md) in reconciliation order, and the workflow verifies the outcome with check-guidelines-specificity.js. Every bare `pwsh` invocation in Core docs and scripts became `powershell -ExecutionPolicy Bypass -File …` (Windows ships only Windows PowerShell 5.1 as `powershell`), and environment-setup.md documents the two 5.1 traps that caused this release's failures. The offline registry snapshot was regenerated from the live index (19 → 21 packages, 0.25.0 → 0.28.0+; new: markup, worklog-kit) and the apmPackages name lists resynced to it. Upstream APM defect (a poisoned lock entry is never re-resolved, so install cannot recover a package whose cached tree is empty) documented in .cursor/skills/project-initialization/references/apm-workflow.md section 5, next to validate-apm-install.ps1."
+      },
+      {
+        "version": "4.5.1",
+        "date": "2026-08-29T00:00:00Z",
+        "description": "SemVer patch bump. Module activation is verified by relocated artifacts instead of by the activation marker. Root cause (field-reported, test-generation on Windows): APM deploys a module's scripts/ folder twice — into the package cache (apm_modules/<git-group>/<repo>/<id>/scripts/, which carries the sibling runtime/ payload) and beside the merged hook config (.cursor/hooks/<id>/scripts/, which does not). The packages' activate.{ps1,sh} resolve their package root positionally (Split-Path -Parent $PSScriptRoot) and guard each copy step with a bare Test-Path, yet write .workplace/activated/<id>.marker and the status:\"active\" state entry unconditionally. Run from the hook-side copy — the first hit of a **/activate.ps1 search — the script extracts nothing and still reports success; marker idempotency then makes every later run of the correct copy a silent no-op. Template-side changes: (1) NEW Core script .cursor/skills/project-initialization/scripts/verify-apm-activation.ps1 classifies every installed type:module package as OK / NOT_ACTIVATED / FALSE_POSITIVE / PARTIAL / PACKAGE_INCOMPLETE by diffing the package's runtime/ payload against the project tree, exits 1 on breakage, prints the correctly resolved activation command, reports hook-side decoys, and supports -Repair (clears false markers + state.json entries) and -Json (for phase gates); ASCII-only because Windows PowerShell 5.1 reads a BOM-less .ps1 as ANSI. (2) phase-1-7-apm.md gained step 5.2: resolve each module's package root, invoke activation directly, gate on the verifier, record results in Decision Log §1.7 — replacing the previous 'markers appear next session' assumption (the SessionStart hook is inert under Cursor, so modules were in practice never activated); Phase Transition Validation and the Outputs table updated accordingly. (3) apm-workflow.md gained §6.1 (resolve <package-root> by evidence — the directory with both apm.yml and runtime/ — never apm_modules/<pkg>/, plus the decoy-copy warning) and §6.2 (artifact-based verification table + verifier usage); three troubleshooting rows added/corrected. (4) apm-packaging/SKILL.md gained the activation-script authoring contract (evidence-based root resolution, hard-fail on missing runtime/, marker written last after postcondition checks, $ErrorActionPreference/set -eu), a three-part module smoke test asserting the hook-side copy fails loudly, and a new anti-pattern entry. (5) docs/core/APM_PACKAGES.md corrected every activation path and marker-based success criterion (cheat sheet, install flow step 5, Re-run activation cleanly, project layout table + tree, activation-shim section, FAQ, troubleshooting). New migration v4.5.1-activation-verification (consent-gated scan/repair/re-activate) for existing projects. The cause itself is a packages-repo defect (activate scripts resolve their root positionally and write the marker unconditionally); cause and remediation are documented in .cursor/skills/project-initialization/references/apm-workflow.md sections 6.1-6.2, next to verify-apm-activation.ps1."
+      },
+      {
+        "version": "4.5.0",
+        "date": "2026-08-07T00:00:00Z",
+        "description": "SemVer minor bump. APM 0.28.0 baseline: apmVersionExpected 0.26.0 → 0.28.0 (smoke-tested with apm-cli==0.28.0 in an isolated venv). AGENTS.md contract moved to compilation.agents_md.mode: managed_section with <!-- apm:start --> / <!-- apm:end --> markers in agents-template.md (replacing the never-emitted <!-- APM:<name> --> per-package marker assumption); Phase 1.7-APM writes the compilation block into the generated apm.yml. SessionStart mechanism corrected (0.28.0 writes it into .cursor/hooks.json in the Claude shape — inert for Cursor; direct script invocation remains the contract). Target matrix updated (grok-build first-class, grok-cloud experimental); documented the object-form skills: field, the aliased ref-bump re-download fix, and the apm pack empty-deps fix; --legacy-skill-paths confirmed on install/compile/pack (not update). New migration v4.5.0-apm-0-28-baseline for existing projects. Packages-repo follow-ups (authoring gates and their blind spots) are documented in .cursor/skills/apm-packaging/SKILL.md."
+      },
+      {
+        "version": "4.4.0",
+        "date": "2026-08-07T00:00:00Z",
+        "description": "SemVer minor bump. Security extraction: removed the security-auditor agent (.cursor/agents/security-auditor.md), the /security-validate and /security-update commands (.cursor/commands/), and the security-compliance skill (.cursor/skills/security-compliance/ — SKILL.md, 5 references/ guides, assets/security-sources.json) from Core. All of this functionality is now shipped exclusively by the standalone-published `nc-code-security-audit` APM package (Workplace-Agent-Packages repo; role-matched + optional, offered in /initialize Phase 1.7-APM Pass A.5 for backend/frontend/fullstack/qa). docs/core/Security_Validation_Guide.md deleted — its content lives in the package's own README.md and docs/SECURITY_AUDIT_GUIDE.md. Core inventory: 5→4 agents, 8→6 commands, 9→8 skills. orchestrator.mdc Command-Based Routing table lost its two security rows; the Role-Pack Commands table gained a `nc-code-security-audit` row for /security-validate and /security-update. /initialize Phase 5 Part 5 (BASS Security Guides intake) is now conditional on the package having been installed in the preceding Phase 1.7-APM step — otherwise it is skipped with a Decision Log §5 Q-block and an `apm.yml` install hint, instead of unconditionally writing security-sources.json. New migration `v4.4.0-security-extraction` (see migrations.available and migration-and-scan.md) removes the four artifacts from existing projects during /update-workplace, preserving and offering to restore any project-customized security-sources.json."
+      },
+      {
+        "version": "4.3.0",
+        "date": "2026-08-04T00:00:00Z",
+        "description": "SemVer minor bump. Quick Init APM bootstrap + role-agnostic package offer (cuts the CHANGELOG.md [4.2.2] entry as the official 4.3.0 release). /quick-init gains an explicit graceful Phase 0 APM CLI gate (missing/uninstallable CLI never blocks Quick Init — records apmAvailable=false and skips the package offer instead of halting) and a new Step 4.5 that resolves the Workplace-Agent-Packages registry index.json at runtime (live HTTPS → authenticated git → offline snapshot, staleness warning on the last) and offers every package whose xWorkplace.targetRoles is empty as one batched multi-select — no package names hardcoded, so catalogue reclassification is picked up automatically. Accepted packages are written to apm.yml (dict form, merged by alias) and installed with APM_LEGACY_SKILL_PATHS=1 apm install after the Phase 1.7-APM credential pre-flight. prepare-apm-packages.ps1 gained a -RoleAgnosticOnly switch exposing a roleAgnosticPackages array plus source-index generatedAt for staleness warnings. See CHANGELOG.md [4.3.0] and quick-init.md Step 0 / Step 4.5."
+      },
+      {
+        "version": "4.2.0",
+        "date": "2026-08-03T00:00:00Z",
+        "description": "SemVer minor bump. docs-sync hook v2: (1) git-layer reliability fixes in docs-sync-check.js (execFileSync with cwd=CURSOR_PROJECT_DIR, -z + --relative throughout, explicit stderr diagnostics, no more silent failure outside a git work tree or in a repo with zero commits). (2) Commit-aware detection: new `lastSyncSha` field in the hook's state file (independent TTL from files/timestamp), `git diff <lastSyncSha>..HEAD` catches changes committed since the last recommendation, sha validation covers rebase/force-push/shallow-clone by safely reseeding to HEAD, new `--record-state` CLI mode lets /docs-sync suppress its own output from re-triggering the hook, large history deltas (>100 files) collapse to a single summary line. (3) Stack-configurable categories: new optional, project-owned, purely-additive `.cursor/hooks/docs-sync-config.json` extends the hook's built-in JS/TS-centric categories/dependencyFiles/buildConfigFiles/ignoredPatterns/thresholds for other stacks (Bazel, Helm/K8s, GitLab CI, Jenkins, raw SQL, pytest, etc.) — generated per-stack by /initialize Phase 3 (stack-configuration.md) for new projects and backfilled by migration_v4_2_docs_sync_config for existing ones. (4) Delivery: docs-sync-check.js added to coreFiles and delivered to existing projects by a new /update-workplace Step 4.5 (core-update.md) that copies the script and only surgically patches the `stop` array of hooks.json (never a wholesale copy — respects APM's ownership of that file and a user's `stop: []` disable choice); detection-and-backup.md Step 5 gained a fileExists guard so a user-deleted hook file doesn't abort the pre-update scan. (5) validate-doc-links.js: git-aware document enumeration (`git ls-files -co --exclude-standard`, `--all` to force full filesystem walk), new `--strict` flag, project-mode `generated-target` warnings, and integration into the /docs-sync workflow (sync-workflow.md, docs-sync.md, documentation-sync.md) instead of being a standalone script. followup_message rewritten with an explicit AGENT INSTRUCTION block and separate uncommitted/committed counts. NEW_FILES_THRESHOLD is 1 (suppresses only when zero new files were added since the last recommendation) — supersedes any earlier CHANGELOG wording about 'fewer than three additional changed files', which described a pre-4.2.0 build."
+      },
+      {
+        "version": "4.1.0",
+        "date": "2026-06-05T00:00:00Z",
+        "description": "SemVer minor bump. (1) CHANGELOG.md moved from docs/ to project root per Keep a Changelog convention; README badge, doc cross-references, and /update-workplace Step 5 updated. (2) Packages catalogue split finalized: the entire packages/ tree (15 packages + _schema/ + _templates/ + scripts/regenerate-index.ps1 + index.json) lives in the standalone Workplace-Agent-Packages repo (https://git.netcracker.com/DEMO.SE.AI/Workplace-Agent-Packages.git) at the repo root — each package is a top-level <id>/ directory referenced as `path: <id>`. In nc-ai-workplace: packages/ and .github/workflows/packages.yml deleted; .core-version.json apmPackages block carries registryRepoUrl + registryBranch and indexFile=index.json; offline snapshot .cursor/rules/packages-index.json regenerated with root-relative paths. Registry source + authoring flow re-pointed: prepare-apm-packages.ps1, phase-1-7-apm.md, apm-workflow.md, package-new + apm-packaging skill, role-commands-template.md, migration-and-scan.md codegen, docs/core/APM_PACKAGES.md all reference Workplace-Agent-Packages with object-form deps (git+path:<id>+ref). templateSource.url (Core template updates) unchanged — still nc-ai-workplace."
+      },
+      {
+        "version": "4.0.0",
+        "date": "2026-05-17T00:00:00Z",
+        "description": "APM migration. Replaces the dual Workplace module system (role-packs + full modules with /moduleActivate) with APM packages stored in this repo under packages/. (A) Catalogue: all 9 role-packs (api, backend-developer, business-analyst, code-quality, codegen-benchmark, frontend-developer, jira-defect-analysis, performance, qa) and both full modules (product-migration, test-generation) migrated to packages/<id>/ with apm.yml + .apm/ tree + scripts/activate.{sh,ps1}. Workplace-specific metadata (targetRoles, optional, standaloneOnly, contextSkills, activate hook) moved into x-workplace: block in each apm.yml, validated against packages/_schema/x-workplace.schema.json. (B) Initializer: Phase 0 (APM CLI bootstrap) added — detects apm CLI, walks user through curl/irm/brew/pip install on miss, persists apmVersion to .core-version.json, warns on major-version drift. Phase 1.7 renamed Phase 1.7-APM with three registry-source modes (built-in HTTPS / external URL / both); built-in source fetches packages/index.json via templateSource.url raw URL; external source accepts any JSON matching packages/_schema/index.schema.json; both merges builtin + external (builtin wins on name conflict). Phase 1.7-APM writes project's apm.yml dependencies.apm: with subdirectory references and runs `APM_LEGACY_SKILL_PATHS=1 apm install`. (C) Compatibility: APM_LEGACY_SKILL_PATHS=1 mandatory for all Workplace-driven apm installs (preserves Phase 6 Part 3.5 paths); MCP merge contract additive in .cursor/mcp.json (Phase 1.5 wins; CI rejects MCP name collisions); AGENTS.md generation in Phase 7 preserves <!-- APM:<name> begin -->...<!-- APM:<name> end --> blocks; environment-setup.md adds apm_modules/, .workplace/activated/, .workplace/state.json to .cursorignore / .gitignore; apm.yml, apm.lock.yaml, .cursor/rules/packages-index.json stay committed. (D) Authoring: new /package-new command + apm-packaging skill scaffolds packages from existing modules, single skills, or blank templates; validation gates `apm compile --validate`, `apm pack --dry-run`, packages/scripts/regenerate-index.ps1; CI workflow .github/workflows/packages.yml enforces all gates. (E) Single source of truth: .cursor/skills/project-initialization/references/apm-workflow.md is the canonical APM reference (overview, CLI install, package layout, registry sources, install flow, post-install activation, update flow, authoring, reference URLs, troubleshooting); every APM-aware command/skill/rule links to it instead of duplicating procedure. (F) Deletions: Modules_Registry/ (entire tree), .cursor/modules/, .cursor/skills/module-activation/, .cursor/commands/moduleActivate.md, docs/core/Modules/, .cursor/skills/project-initialization/scripts/prepare-role-packs.ps1, and the .cursor/rules/role-packs-state.json runtime artifact removed; replaced by .cursor/skills/apm-packaging/, .cursor/commands/package-new.md, .cursor/skills/project-initialization/scripts/prepare-apm-packages.ps1, .cursor/skills/project-initialization/references/{apm-workflow,apm-bootstrap,phase-1-7-apm}.md, docs/core/APM_PACKAGES.md, root apm.yml, packages/* tree."
+      },
+      {
+        "version": "3.0.0",
+        "date": "2026-04-19T00:00:00Z",
+        "description": "Lean Core, Role Packs & Smart Initialization (single consolidated release). Bundles five areas of change: (A) Role-Packs Refactor — moved 7 role-specific agents, 9 commands and 14 skills out of Core into Modules_Registry/role-packs/ (frontend-developer, backend-developer, api, performance, qa, business-analyst); Core inventory cut to 5 agents / 8 commands / 9 skills; DevOps role retired (covered by always-Core infra-specialist + infrastructure-context); .cursor/commands/.templates/ removed and synthetic command generation eliminated; activation now copies role-pack artifacts into .cursor/ as-is when a matching role is selected; coding-standards-context and infrastructure-context designated coreContextSkills with mandatory guidelines.md generation. (B) TDD Workflow Integration — removed standalone .cursor/rules/tdd_workflow.mdc; universal RED-GREEN-REFACTOR discipline merged into .cursor/skills/code-quality-standards/SKILL.md; project-specific TDD policy added to coding-standards-context/references/template.md (rendered into references/guidelines.md during Phase 6) and reflected in project-config.json under a new testing.* block. (C) Adaptive Initialization + Phase Reflection Checkpoint — NEW vs EXISTING auto-detected from .core-version.json + file signals; MANDATORY Phase Reflection Checkpoint after Phases 1, 2, 4, 5, 6 with four-question self-review and 1–3 name-referencing Smart Questions; Phase 4 Explore prompt now requires business modules + top entities + top endpoint groups + named integrations (sections 8–11); Phase 5 rounds become skip-by-default in EXISTING_PROJECT when Phase 4 covers them; compliance frameworks (PCI DSS / HIPAA / GDPR / SOC 2) pre-checked from detected integrations; Phase 6 adds per-domain Reflection Step 0 with confidence scoring → 0–3 questions per domain; Phase 2 metadata accepts package.json + README silently when consistent. (D) Drop Parallel Customization System — removed .cursor/rules/project_customizations.mdc, .cursor/rules/project/.templates/, the project-* prefix convention, the Project Customizations section in orchestrator.mdc, Phase 6.5 customization steps, and .cursor/rules/project/routing.mdc; .cursor/rules/project/ now holds only metadata.json; project adaptation consolidated into three native channels: (1) editing role-pack artifacts in place after /moduleActivate (project-owned, survive /update-workplace); (2) Project Conventions section in root AGENTS.md (Phase 7 template seeds it); (3) per-skill project-config.json + references/guidelines.md. docs/core/CUSTOMIZATION.md rewritten (~700 → ~150 lines). (E) Phase 1.6 Synthetic Command Generation Removed — Phase 1.6 no longer creates six generic workflow command files (review.md, bugfix.md, onboard.md, feature.md, refactor.md, test.md) inline; it is a read-only inventory of the 8 Core commands shipped with the Workplace template (initialize, quick-init, moduleActivate, update-workplace, taskmaster-init, docs-sync, security-validate, security-update); Phase 1.7 (role-pack + full-module activation, byte-for-byte copy) is the only mechanism that puts new files into .cursor/commands/ during initialization."
+      },
+      {
+        "version": "2.2.0",
+        "date": "2026-04-06T00:00:00Z",
+        "description": "BA UML Modeling skill: diagram creation, Confluence extraction/publishing, Mermaid templates, integration with ba-confluence-import and ba-impact-analysis"
+      },
+      {
+        "version": "2.1.0",
+        "date": "2026-04-06T00:00:00Z",
+        "description": "Business Analyst (BA) role: 3 new skills (ba-confluence-import, ba-impact-analysis, ba-task-generation), 3 new commands, Phase 1.5 and Phase 6 initialization support, comprehensive documentation"
+      },
+      {
+        "version": "2.0.0",
+        "date": "2026-03-24T00:00:00Z",
+        "description": "Subagent Architecture Transformation: Replaced 40 .mdc rules with 11 specialized agents, 14 domain skills, and 2 always-apply routing rules"
+      }
+    ],
+    "available": [
+      {
+        "version": "v4.6.0-init-restructure",
+        "date": "2026-09-01T00:00:00Z",
+        "description": "Bring a project initialized on template <=4.5.2 onto the v4.6.0 initialization structure. The 19 Phase 4/5/6 step files, the rewritten routers, .cursor/agents/codebase-analyzer.md, assets/analysis-report.schema.json and scripts/validate-analysis.js all arrive through the standard Core copy step; this migration covers only what a file copy cannot do. Steps: (1) register every coreFiles path shipped by v4.6.0 that the project's own map lacks, with hash \"pending\" so the next compute-hashes run fills it — without this, /update-workplace would treat each step file as project-owned and stop offering it updates; (2) warn (do not repair) when a router path is registered but absent on disk, which means the Core copy step could not write it; (3) create .cursor/project/analysis/ if missing, so a later Phase 4 re-analysis has somewhere to write — the directory is project-owned and its artifacts are committed, so it is deliberately NOT added to coreFiles, and this migration never dispatches a subagent or generates an artifact; (4) report, without rewriting, project-owned documents that deep-link into a section of a former monolith (the link still resolves — the routers kept their paths — but the section now lives in a step file), recording them as an Open Gap; (5) report, without rewriting, project docs still citing 4 Core agents (now 5). Idempotent — every step no-ops when its outcome is already in place. The only writes are the project's own coreFiles map and one mkdir. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_6_0_init_restructure."
+      },
+      {
+        "version": "v4.5.2-init-reliability",
+        "date": "2026-09-01T00:00:00Z",
+        "description": "Bring a project initialized on template <=4.5.1 onto the v4.5.2 reliability contract. The refreshed scripts arrive through the standard Core copy step (all are in coreFiles); this migration covers only what a file copy cannot do. Steps: (1) mark the template-owned docs/** entries in the project's .core-version.json coreFiles as \"optional\": true and drop the stale .cursor/rules/components/README.md entry, so compute-hashes no longer reports them as missing required files (idempotent — skip entries already flagged); (2) no-op the remaining APM steps when apm_modules/ is absent, otherwise run `powershell -ExecutionPolicy Bypass -File .cursor/skills/project-initialization/scripts/validate-apm-install.ps1` read-only and, on exit 1, report each poisoned lock entry / empty package tree with the purge command the script prints — never hand-create files inside a package-owned skill, and never purge without consent, because purging deletes the cached package tree; (3) when the project is initialized (initializationStatus: \"active\"), run `node .cursor/skills/project-initialization/scripts/check-guidelines-specificity.js --required-from .cursor/.temp-apm-selection.json` if that file exists, else with the required set derived from the installed packages' x-workplace.contextSkills plus coding-standards-context and infrastructure-context; report findings split into install vs render classes and record unresolved ones as Open Gaps (this migration proposes, it does not re-render — re-rendering a domain's guidelines.md is Phase 6 work requiring the user's approval); (4) scan project-owned documents (excluding .cursor/ and docs/core/, which the Core copy just replaced) for bare `pwsh <script>` invocations of Workplace scripts and, only on a host where `powershell` resolves, offer to rewrite them to `powershell -ExecutionPolicy Bypass -File <script>` - on macOS/Linux `pwsh` is the only PowerShell binary, so there the step is report-only; (5) report, without rewriting, any project doc that still cites the pre-v4.5.2 package count (19) or the resolved frontend-slides standaloneOnly drift. Idempotent — every step no-ops when its outcome is already in place. Read-only apart from step 1 and the consent-gated rewrites in step 4."
+      },
+      {
+        "version": "v4.5.1-activation-verification",
+        "date": "2026-08-29T00:00:00Z",
+        "description": "Detect and repair false-positive APM module activation in a project initialized on template <=4.5.0. Such a project may carry .workplace/activated/<pkg>.marker plus a status:\"active\" state entry for a module whose runtime/ payload was never extracted, because the activation script was run from the hook-side copy at .cursor/hooks/<pkg>/scripts/ (no sibling runtime/, all copy steps silently skipped, marker written anyway) — and marker idempotency makes every later correct run a no-op. Steps: (1) no-op when apm_modules/ is absent; (2) read-only scan via `powershell -ExecutionPolicy Bypass -File .cursor/skills/project-initialization/scripts/verify-apm-activation.ps1 -Json` (the script is delivered by the standard Core copy step — it is in coreFiles) and report any hook-side decoy scripts; (3) if no module is FALSE_POSITIVE/PARTIAL, record and finish; (4) otherwise ask the user: repair+re-activate / repair markers only / report only; (5) on consent run the verifier with -Repair (touches only markers and state.json entries — never a relocated runtime folder, so user edits inside an extracted tree survive), then invoke the per-package activation command the verifier resolved (package-cache root, never the .cursor/hooks copy) and re-verify, reporting anything still broken as an Open Gap. Idempotent; read-only until the user approves. If neither pwsh nor powershell is available, skip and report the manual check from apm-workflow.md §6.2 instead of failing the update. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_5_1_activation_verification."
+      },
+      {
+        "version": "v4.5.0-apm-0-28-baseline",
+        "date": "2026-08-07T00:00:00Z",
+        "description": "Rebase a project initialized on template <=4.4.0 onto the APM 0.28.0 contract. Steps: (1) verify apm --version >= 0.28.0 and warn + offer a consent-gated install of apm-cli==0.28.0 otherwise; (2) ensure the project apm.yml contains compilation.agents_md.mode: managed_section (add the block if absent; leave an explicitly-set full mode untouched but report it); (3) ensure AGENTS.md carries a <!-- apm:start --> / <!-- apm:end --> pair delimiting the APM-managed region (insert an empty pair before the final section if absent; never move or delete existing hand-written content); (4) run APM_LEGACY_SKILL_PATHS=1 apm install and, when the project wants compiled package instructions, apm compile --target cursor to populate the managed region; (5) report stale project-owned docs that still reference the removed <!-- APM:<name> begin/end --> marker contract (report only — no silent rewrites of project files). Idempotent — each step no-ops when its artifact is already in place. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_5_0_apm_0_28_baseline."
+      },
+      {
+        "version": "v4.4.0-security-extraction",
+        "date": "2026-08-07T00:00:00Z",
+        "description": "Remove the four Core security artifacts (.cursor/agents/security-auditor.md, .cursor/commands/security-validate.md, .cursor/commands/security-update.md, .cursor/skills/security-compliance/) from a project updating from template ≤4.3.0, now that this functionality is shipped exclusively by the standalone-published `nc-code-security-audit` APM package. Idempotent — no-op if none of the four paths exist. Backs up to .cursor/.backups/v4.4.0-security-extraction/ before deleting, explicitly preserving the project's customized .cursor/skills/security-compliance/assets/security-sources.json (active guides, custom requirements, notification settings) rather than discarding it. Scrubs the four corresponding coreFiles entries from the project's own .core-version.json. Then offers yes/no/later: add `nc-code-security-audit` (git: <apmPackages.registryRepoUrl>, path: nc-code-security-audit, ref: master) to apm.yml and run `APM_LEGACY_SKILL_PATHS=1 apm install`; on accept, the preserved security-sources.json is restored over the package's default so existing guide selections and custom requirements are not lost. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_4_0_security_extraction."
+      },
+      {
+        "version": "v4.2.0-docs-sync-config",
+        "date": "2026-08-03T00:00:00Z",
+        "description": "Generate .cursor/hooks/docs-sync-config.json for a project initialized before v4.2.0, so the docs-sync-check.js hook (refreshed to v2 by the standard core-update Step 4.5) gets stack-specific category/dependency/build-config additions instead of staying JS/TS-centric-only. Infers the stack from development.mdc's Technology Stack section plus repo markers (pom.xml, MODULE.bazel/WORKSPACE/BUILD.bazel, build.gradle*, helm/, charts/, k8s/, .gitlab-ci.yml, Jenkinsfile, *.sql, openapi*/swagger*), proposes a config using the same signal table as /initialize Phase 3, and writes only after explicit user approval (unlike the silent init-time generation, since this runs unattended during an update). Idempotent — no-op if docs-sync-config.json already exists. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_2_docs_sync_config."
+      },
+      {
+        "version": "v4.1.0-changelog-relocate",
+        "date": "2026-06-05T00:00:00Z",
+        "description": "Relocate CHANGELOG.md from docs/ to project root when updating from template 4.0.0 (or any pre-4.1.0 version). Standard core-update Step 5 copies root CHANGELOG.md from the template; this migration backs up and removes stale docs/CHANGELOG.md so only the root file remains. Idempotent — no-op if docs/CHANGELOG.md is already absent. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_1_0_changelog_relocate."
+      },
+      {
+        "version": "v4.0.0-apm-migration",
+        "date": "2026-05-17T00:00:00Z",
+        "description": "Migrate a v3.x project from the legacy Workplace module system (role-packs + full modules + /moduleActivate) to APM packages. Standard core-update steps: replace orchestrator.mdc, development.mdc, project-initialization SKILL.md + new references (apm-workflow.md, apm-bootstrap.md, phase-1-7-apm.md), environment-setup.md, configuration-updates.md, documentation.md, user-roles-mcp.md, scripts/prepare-apm-packages.ps1; install new skill .cursor/skills/apm-packaging/, new command .cursor/commands/package-new.md, new docs/core/APM_PACKAGES.md, root apm.yml. Migration steps (idempotent, backed up to .cursor/.update-backup/): (1) delete Modules_Registry/, .cursor/modules/, .cursor/skills/module-activation/, .cursor/commands/moduleActivate.md, docs/core/Modules/, .cursor/skills/project-initialization/scripts/prepare-role-packs.ps1, .cursor/rules/role-packs-state.json — all are template-owned legacy artifacts. (2) Existing role-pack artifacts in .cursor/agents/, .cursor/skills/, .cursor/commands/ (deployed previously by /moduleActivate) stay in place — they remain project-owned. (3) If .cursor/modules/<Module>/ runtime folders (ProductMigration/, TestGeneration/) already live in the project root, leave them. (4) Generate project's apm.yml at root with dependencies.apm: listing every previously-activated pack/module as a subdirectory reference to the Workplace repo. (5) Add apm_modules/, .workplace/activated/, .workplace/state.json to .gitignore and .cursorignore. (6) Run Phase 0 (apm CLI bootstrap). (7) Prompt user to run `APM_LEGACY_SKILL_PATHS=1 apm install` to verify the lockfile and refresh primitives. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v4_0_apm_migration."
+      },
+      {
+        "version": "v3.1.0-thin-project-init-ledger",
+        "date": "2026-04-30T00:00:00Z",
+        "description": "Thin Project Init Ledger (source-of-truth split). Refactors .cursor/project_init.md from a mixed knowledge base into a compact ledger (state, artifact pointers, phase checklist, Supplemental Source Manifest, User Answers & Decision Log with Q-blocks, Open Gaps, Initialization Summary). Operational facts (stack, architecture, components, performance, constraints, security, API documentation, codebase analysis) now live in authoritative artifacts: development.mdc, per-domain project-config.json, security-sources.json, metadata.json. Updates Smart Merge to preserve the Decision Log and Open Gaps verbatim during /update-workplace, with a new Phase 5 Step 7 HARD GATE verifying byte-identical preservation. Converts legacy expanded project_init.md files (Technology Stack, Existing Project Analysis, API Documentation Sources, etc.) into the new ledger format safely: full backup, reconcile each section against its authoritative artifact, collapse into Q-blocks when artifact already carries content, preserve unmatched content verbatim under '## Migration Notes (v3.1.0)' for manual user review. See .cursor/skills/project-update/references/migration-and-scan.md → Migration: v3.1.0-thin-project-init-ledger."
+      },
+      {
+        "version": "v3.0.0-drop-project-customizations",
+        "date": "2026-04-19T00:00:00Z",
+        "description": "Drop the parallel `project-*` customization system in favor of three native adaptation channels (role-pack artifact edits, `AGENTS.md` Project Conventions section, per-skill `project-config.json` + `guidelines.md`). Standard core-update step replaces `orchestrator.mdc`, `project-initialization/SKILL.md`, and `project-update/references/migration-and-scan.md`, then deletes Core file `.cursor/rules/project_customizations.mdc`. The migration step (`migration_v3_0_drop_project_customizations`) discovers legacy `project-*` artifacts in `.cursor/rules/project/`, `.cursor/agents/`, `.cursor/commands/`, `.cursor/skills/` and presents an interactive per-file resolution table (fold into role-pack guidelines.md, fold into AGENTS.md → Project Conventions, rename without prefix, drop). Every original is backed up to `.cursor/.backups/customizations/<original-path>` before any change. `metadata.json` is preserved untouched. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v3_0_drop_project_customizations."
+      },
+      {
+        "version": "v3.0.0-reflection-checkpoints",
+        "date": "2026-04-19T00:00:00Z",
+        "description": "Adaptive Initialization + Phase Reflection Checkpoint. Standard core-update step replaces the project-initialization SKILL + 6 references and the initializer agent. The migration then performs additive, idempotent injection on the project-owned .cursor/project_init.md: (a) adds nested 'Phase {N} reflection completed' sub-checkboxes under Phase 1/2/4/5/6 status entries; (b) appends '### Phase {N} Reflection Notes' template subsections to the Notes & Additional Context section; (c) rewrites the legacy 'Ask for confirmation' Initialization Mode instruction to point at mode-detection.md, but only when byte-identical to the v2.x Core baseline (otherwise emits a warning and preserves the user-edited block). All edits are guarded by markers so re-runs are no-ops; the file is backed up to .cursor/.update-backup/ before any write. See .cursor/skills/project-update/references/migration-and-scan.md → migration_v3_0_reflection_checkpoints."
+      },
+      {
+        "version": "v3.0.0-tdd-into-skills",
+        "date": "2026-04-19T00:00:00Z",
+        "description": "Retire .cursor/rules/tdd_workflow.mdc; merge universal TDD discipline into code-quality-standards/SKILL.md and project-specific TDD policy into coding-standards-context (template.md + project-config.json testing.* block). See .cursor/skills/project-update/references/migration-and-scan.md → migration_v3_0_tdd_into_skills."
+      }
+    ]
+  },
+  "notes": "This file tracks Core template version and file integrity. Used during project updates to detect modifications. v4.1.0 — CHANGELOG.md moved to project root; packages catalogue lives in the standalone Workplace-Agent-Packages repo (apmPackages.registryRepoUrl), one directory per package at the repo root (`path: <id>`). nc-ai-workplace keeps the registry plumbing (apmPackages block + offline snapshot .cursor/rules/packages-index.json) and the authoring/init flow that consume the external repo. Builds on v4.0.0 — APM migration (packages/ catalogue + /moduleActivate retired; install via `apm install` with APM_LEGACY_SKILL_PATHS=1; Phase 0 bootstrap + Phase 1.7-APM). Single source of truth for the APM workflow: .cursor/skills/project-initialization/references/apm-workflow.md. `apmVersionExpected` bumped 0.25.0 -> 0.26.0 (2026-07-27 doc refresh, no template minor/major bump; 0.26.0 is now the declared supported baseline and `apm-cli==0.26.0` is confirmed published on PyPI). The two contracts Workplace depends on are unchanged in 0.26.0: dict-form (`git`+`path`+`ref`) dependencies, and `APM_LEGACY_SKILL_PATHS=1` — still the only mechanism that also covers `apm update` (which has no `--legacy-skill-paths` flag), and still classified upstream as a compatibility shim that will be removed. Corrections applied in this pass: (1) TLS — 0.26.0 verifies HTTPS against the OS trust store by default (upstream PR 2005), so the corporate-CA `certifi` + `REQUESTS_CA_BUNDLE` recipe for the Platform AI marketplace became a fallback rather than the first step; `CURL_CA_BUNDLE` is honoured as an alternative override, `APM_DISABLE_TRUSTSTORE=1` restores the legacy bundled-certifi path, and `SSL_CERT_FILE` (not read by requests) was demoted from the recipe. (2) Hook events — upstream now states explicitly that hook JSON must be authored in Claude (`PreToolUse`/`PostToolUse`) or Copilot (`preToolUse`/`postToolUse`) conventions and that arbitrary event names are not mapped, so the previously hedged `SessionStart` activation assumption is resolved as unsupported: direct invocation of the deployed `scripts/activate.{sh,ps1}` is the reliable path, and `apm lifecycle` (post-install scripts gated by `apm lifecycle trust`) is the native replacement to evaluate for the module package type. (3) Target resolution — the chain is `--target` > `apm.yml targets:` > `apm config set target` > auto-detect, with exit code 2 when nothing is detectable; manifest `target: all` is deprecated (future hard parse error) and `--target all` excludes agent-skills, antigravity and intellij; `vscode` is an accepted `--target` value, `intellij` is a first-class target (`--runtime` is only a legacy alias), and copilot-cowork / copilot-app / openclaw / hermes are experimental targets requiring `apm experimental enable`. Also corrected: the manifest enum for top-level `target:`/`targets:` is narrower than the `--target` enum (copilot, claude, cursor, opencode, codex, gemini, windsurf, kiro, agent-skills only; unknown values are a parse error), so antigravity / intellij / vscode are flag-only values, and per-dependency `targets: []` is rejected at parse time (omit the key to mean 'all'). (4) New surface now documented in the Workplace docs: `apm doctor` (environment diagnostics), `apm prune` (orphaned packages + stale files), `apm install --frozen` (the correct CI command, npm-ci equivalent), semver ranges in `ref:` for git deps, and the `apm-hooks.json` ownership sidecar APM writes beside merged hook configs. (5) 0.26.0 fixes that matter for this registry: nested GitLab repository cache identity (PR 2192), custom ports preserved in HTTP git URLs, selective `apm update <name>` no longer marking unselected deps as removed (PR 2305), and `apm pack` handling subdirectory-prefixed skills (PR 2176); Windows installs now put the stable `current` apm.exe first on PATH, and `APM_TEMP_DIR` is the documented workaround when AppLocker or endpoint protection blocks the default temp path. Unchanged from the previous refresh: `apm view` (not `apm show`) inspects a package, `apm list` prints the project's own `scripts:` map, there is no `apm run activate -p <pkg>`, `apm self-update` no-ops on brew/scoop-installed CLIs, and shorthand git deps work only on classified hosts — dict form stays mandatory for the self-hosted `git.netcracker.com` registry (`apm deps update` is now deprecated in favour of `apm update`). Files touched by this refresh: docs/core/APM_PACKAGES.md, .cursor/skills/project-initialization/references/apm-workflow.md, .cursor/skills/project-initialization/references/apm-bootstrap.md (version banner + Windows/doctor notes), .cursor/skills/project-initialization/references/phase-1-7-apm.md (shorthand-verification note), .cursor/skills/apm-packaging/SKILL.md, .cursor/commands/package-new.md. `.cursor/rules/packages-index.json` still shows package `version: 0.25.0` values — those are Workplace package versions, unrelated to the APM CLI version, and were intentionally left alone. v4.5.0 (2026-08-07) — `apmVersionExpected` bumped 0.26.0 -> 0.28.0 after an isolated smoke test of `apm-cli==0.28.0`. Two long-standing doc claims were falsified by the smoke test and corrected: (1) `apm compile` never emitted per-package `<!-- APM:<name> begin/end -->` markers — the AGENTS.md co-ownership contract is now `compilation.agents_md.mode: managed_section` + a single `<!-- apm:start -->`/`<!-- apm:end -->` pair (Phase 1.7-APM writes the compilation block; agents-template.md carries the markers; migration v4.5.0-apm-0-28-baseline patches existing projects). (2) `SessionStart` IS copied into `.cursor/hooks.json` on 0.28.0 — but verbatim in the Claude event shape with the extensionless `${PLUGIN_ROOT}/scripts/activate` reference unresolved, which Cursor's hooks schema does not execute, so direct `scripts/activate.{ps1,sh}` invocation remains the activation contract. Also verified: `--legacy-skill-paths` is accepted by install/compile/pack but NOT update (env var stays canonical); aliased deps re-download after a manifest `ref:` bump; `apm pack` passes with empty dependency lists; `dependencies.mcp` MUST be a list of objects (map form silently ignored, not caught by pack validation — flagged for the packages repo CI in the apm-packaging skill's anti-pattern list). New targets documented: grok-build (first-class, `.grok/`, in `all`) and grok-cloud (experimental)."
+}

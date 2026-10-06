@@ -1,0 +1,32 @@
+{
+  "initialized": true,
+  "timestamp": "2026-09-30T10:38:00.000Z",
+  "framework": "NetCracker NextGenCI / Playwright E2E Test Runner",
+  "version": "N/A (application placeholder APPLICATION_NAME = atp3-pw-<to_replace_project_name>)",
+  "cloudProvider": "NetCracker (Artifactory at artifactorycn.netcracker.com; runner tag: NETCRACKER)",
+  "cicdPlatform": "GitLab CI with NextGenCI components (bootstrap@1.1.10, ng-buildx@1.6.0, app-chart@1.7.0, application-dd@1.9.0)",
+  "containerization": "Docker multistage — 4 stages: transfer, helm-processor (openjdk21:21.0.5.11.01), artifact (scratch), runner",
+  "orchestration": "Helm (app-chart/); chart renamed from atp3-playwright-runner to APPLICATION_NAME at build time",
+  "deploymentStrategy": "Not active (workflow: never); fill APPLICATION_NAME, RUNNER_IMAGE, TRANSFER_IMAGE placeholders before enabling",
+  "monitoringStack": "Not configured",
+  "configuration": {},
+  "patterns": [
+    "GitLab CI pipeline with build-sonar, build, package, and publish stages (disabled by workflow: never until placeholders are filled)",
+    "Multistage Dockerfile: transfer → helm-processor (openjdk21) → artifact (scratch export) → runner (${RUNNER_IMAGE})",
+    "Helm chart in app-chart/ for Kubernetes deployment of the test runner; chart name dynamically set to APPLICATION_NAME",
+    "SonarQube analysis via sonar-scanner-cli:11 on MR and protected branches (allows failure)",
+    "Artifacts published to NetCracker Artifactory under group com.netcracker.cloud.atp.project.applications-entities"
+  ],
+  "conventions": [
+    "Keep environment-specific values out of source control (use .env and secrets management)",
+    "Pin base image and dependency versions in Dockerfiles and CI configs",
+    "Use infrastructure-as-code or version-controlled config where possible"
+  ],
+  "constraints": [
+    "CI/CD pipeline disabled by default (workflow: never) — must fill APPLICATION_NAME, RUNNER_IMAGE, TRANSFER_IMAGE, and REPLACE_SONAR_PROJECT_KEY before enabling",
+    "Runner image (${RUNNER_IMAGE}) must be a NetCracker ATP Playwright runner image published to artifactorycn.netcracker.com",
+    "Test runner copies TestGeneration/ to /tmp/clone and runs as non-root 'runner' user",
+    "Build job timeout: 20 minutes; artifact expiration: 30 minutes"
+  ],
+  "projectSpecificNotes": "NetCracker ATP3 Playwright runner project. GitLab CI uses NextGenCI reusable components with NetCracker Artifactory as the container and Helm registry. Pipeline is disabled (workflow: never) until APPLICATION_NAME and image placeholders are filled. Helm chart base is atp3-playwright-runner, renamed at build time. Update this file when environment targets, monitoring, or deployment strategy are decided."
+}

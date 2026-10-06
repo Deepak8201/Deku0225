@@ -1,0 +1,63 @@
+ARG TRANSFER_IMAGE
+ARG RUNNER_IMAGE
+
+# ---------------------------------------------------------------------------
+# Stage 1: transfer – source image containing /scripts and /deployments
+# ---------------------------------------------------------------------------
+FROM ${TRANSFER_IMAGE} AS transfer
+
+# ---------------------------------------------------------------------------
+# Stage 2: helm-processor – rename charts, apply configmap, prepare output
+# ---------------------------------------------------------------------------
+FROM artifactorycn.netcracker.com:17003/alpine/openjdk21:21.0.5.11.01 AS helm-processor
+
+USER root
+
+ARG APPLICATION_NAME
+
+WORKDIR /output
+
+COPY --from=transfer /scripts ./scripts
+COPY --from=transfer /deployments ./deployments
+COPY app-chart ./app-chart
+
+RUN --mount=type=bind,target=/build-context \
+    set -e \
+    && if [ -f /build-context/chart/configmap-extra.yaml ]; then \
+         cp /build-context/chart/configmap-extra.yaml \
+           deployments/charts/atp3-playwright-runner/templates/; \
+       fi \
+    && mv deployments/charts/atp3-playwright-runner \
+         deployments/charts/${APPLICATION_NAME} \
+    && sed -i "s/^name: atp3-playwright-runner$/name: ${APPLICATION_NAME}/" \
+         deployments/charts/${APPLICATION_NAME}/Chart.yaml \
+    && mkdir -p helm-templates/${APPLICATION_NAME} \
+    && cp -R deployments/charts/${APPLICATION_NAME}/* \
+         helm-templates/${APPLICATION_NAME}/ \
+    && sed -i "s/^name: atp3-pw$/name: ${APPLICATION_NAME}/" \
+         app-chart/Chart.yaml
+
+# ---------------------------------------------------------------------------
+# Stage 3: artifact – lightweight export stage
+#   ng-buildx extracts this stage to ng-buildx/build-artifacts/ when
+#   extract_artifacts_from_docker_stage: true
+# ---------------------------------------------------------------------------
+FROM scratch AS artifact
+
+COPY --from=helm-processor /output/helm-templates /helm-templates
+COPY --from=helm-processor /output/app-chart /app-chart
+COPY --from=helm-processor /output/scripts /scripts
+COPY --from=helm-processor /output/deployments /deployments
+
+# ---------------------------------------------------------------------------
+# Stage 4: runner – final test-runner image (pushed to registry)
+# ---------------------------------------------------------------------------
+FROM ${RUNNER_IMAGE} AS runner
+
+ENV TESTS_DIR=/tmp/clone
+
+USER root
+RUN mkdir -p "$TESTS_DIR" && \
+    chown -R runner:runner "$TESTS_DIR"
+COPY --chown=runner:runner TestGeneration "$TESTS_DIR"
+USER runner

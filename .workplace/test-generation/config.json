@@ -1,0 +1,25 @@
+{
+  "rootFolder": "TestGeneration",
+  "paths": {
+    "sharedRuntime": "SharedRuntime",
+    "debugOutput": "tests/Raw/Debug",
+    "reportOutput": "tests/Raw/Report",
+    "testScenario": "tests/TestScenario",
+    "functional": "tests/Functional",
+    "business": "tests/Business",
+    "testData": "tests/TestData",
+    "locatorCache": "tests/Utils/locator_cache.json",
+    "testTagsMapping": "tests/Utils/TestTagsMapping.json",
+    "tagConfig": "tests/Settings/TagConfiguration.json",
+    "envConfig": "environment-configuration/local-environment-configuration/environment-configuration.json"
+  },
+  "importBasePath": "TestGeneration/SharedRuntime",
+  "testIdFormat": "TC_{XXX}_v{YYY}_{Name}",
+  "execution": {
+    "params": "--workers=1 --headed --project=chromium",
+    "maxRetriesPerPhase": 3,
+    "maxFixCycles": 5,
+    "maxMCPFixAttempts": 3,
+    "confirmBeforeContinue": true
+  }
+}

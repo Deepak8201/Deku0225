@@ -1,0 +1,37 @@
+{
+  "description": "Project-specific metadata used by Core workflows",
+  "version": "1.0.0",
+  "project": {
+    "name": "cloud-jpg-tests",
+    "version": "0.1.0",
+    "description": "NetCracker ATP3 E2E test automation project (Playwright 1.58.2 / TypeScript 6.0.3). Application under test (AUT) stack not yet configured.",
+    "repository": "https://git.netcracker.com/PROD.ATP/projects.atp/cloud-jpg/cloud-jpg-tests.git",
+    "team": {
+      "name": "Development Team",
+      "slack": "#dev-team",
+      "leads": []
+    }
+  },
+  "environments": {
+    "development": {
+      "url": "[TBD]",
+      "description": "Local development environment"
+    },
+    "staging": {
+      "url": "[TBD]",
+      "description": "Staging environment for testing"
+    },
+    "production": {
+      "url": "[TBD]",
+      "description": "Production environment"
+    }
+  },
+  "customizations": {
+    "initialized": true,
+    "lastModified": "2026-10-01T00:00:00Z",
+    "notes": [
+      "Cross-harness project: .opencode/ was fully initialized first (template v5.0.0, test-generation APM package installed, targets: opencode). .cursor/ (Cursor-line v4.8.0) was set up via /quick-init afterward.",
+      "Core context skill answers (coding-standards-context, infrastructure-context) were ported from the already-verified .opencode/ configuration rather than re-collected."
+    ]
+  }
+}

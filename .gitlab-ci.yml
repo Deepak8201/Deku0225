@@ -1,0 +1,125 @@
+workflow:
+  rules:
+    - when: never
+
+stages:
+  - build-sonar
+  - build
+  - package
+  - publish
+
+.artifact_expiration: &artifact_expiration "30 min"
+
+variables:
+
+  ARTIFACTORY_URL: "https://artifactorycn.netcracker.com"
+  APPLICATION_ARTIFACT_ID: "atp3-pw-<to_replace_project_name>"
+  APPLICATION_ENTITIES_GROUP_ID: "com.netcracker.cloud.atp.project"
+  ENTITIES_GROUP_ID: "com.netcracker.cloud.atp.project.applications-entities"
+  APPLICATION_ENTITIES_IMAGES_DOCKER_NAMESPACE: "nextgenci"
+  APPLICATION_NAME: "atp3-pw-<to_replace_project_name>"
+
+  RUNNER_IMAGE: <to_replace_latest_runner_version>
+  TRANSFER_IMAGE: <to_replace_latest_runner_transfer_version>
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+
+build-sonar:
+  stage: build-sonar
+  image:
+    name: artifactorycn.netcracker.com:17114/sonarsource/sonar-scanner-cli:11
+    entrypoint: [ "" ]
+  tags:
+    - NETCRACKER
+
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+      - sonar-scanner/
+
+  script:
+    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}" -Dsonar.projectKey=${REPLACE_SONAR_PROJECT_KEY} -Dsonar.qualitygate.wait=true -Dsonar.jira.skipTags=@wip
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+include:
+  # 1. Bootstrap Template (Required - Always First)
+  - component: $CI_SERVER_FQDN/prod.platform.devops/nextgenci/components/bootstrap/bootstrap-config@1.1.10
+    inputs:
+      default_runner_tag: "NETCRACKER-CACHE-MEDIUM"
+      default_dind_runner_tag: "NETCRACKER-SYSBOX-DIND-SMALL"
+      enable_helm_repositories: true
+      enable_docker_registries: true
+      enable_npm_repositories: true
+
+  # 2. Project Registry Config (Project-specific settings)
+  - local: '.gitlab/nextgenci/registry-config.yaml'
+
+  # 3. Build runner image + extract helm artifacts
+  - component: $CI_SERVER_FQDN/prod.platform.devops/nextgenci/components/container-images/ng-buildx@1.6.0
+    inputs:
+      stage: build
+      debug: true
+      docker_push_to_registry: true
+      nc_manifest_publish_entity_dd: true
+      instance_id: "default"
+      docker_image_name: "${APPLICATION_NAME}"
+      dockerfile_name: "Dockerfile.multistage"
+      docker_build_context: "."
+      docker_build_dockerfile_args:
+        - TRANSFER_IMAGE: "$TRANSFER_IMAGE"
+        - RUNNER_IMAGE: "$RUNNER_IMAGE"
+        - APPLICATION_NAME: "$APPLICATION_NAME"
+        - HTTP_FTP_PROJECTS: "$HTTP_FTP_PROJECTS"
+      extract_artifacts_from_docker_stage: true
+      extract_artifacts_docker_stage_name: "artifact"
+      docker_registry_host: "$NG_CI_DOCKER_SNAPSHOT_REGISTRY_HOST"
+      docker_image_namespace: "$APPLICATION_ENTITIES_IMAGES_DOCKER_NAMESPACE"
+      docker_image_additional_tags:
+        - "${CI_PIPELINE_ID}"
+        - "${CI_COMMIT_REF_SLUG}"
+      nc_manifest_entity_type: "service"
+      nc_manifest_entity_name: "${APPLICATION_NAME}"
+      nc_manifest_entity_group_id: "$ENTITIES_GROUP_ID"
+      nc_manifest_entity_directory_path: "."
+      nc_manifest_helm_template_path: "ng-buildx/build-artifacts"
+      job_timeout: "20 minutes"
+
+  # 4. Package helm chart
+  - component: $CI_SERVER_FQDN/prod.platform.devops/nextgenci/components/helm-charts/app-chart@1.7.0
+    inputs:
+      stage: package
+      with_needs: true
+      needs: [ "ng-buildx.default.build" ]
+      appchart_source_path: "ng-buildx/build-artifacts/app-chart"
+      build_app_charts_include_paths:
+        - "ng-buildx/build-artifacts/app-chart"
+      application_name: "$APPLICATION_NAME"
+      helm_dependency_repos:
+        - name: nc.libraries.helm
+          path: https://artifactorycn.netcracker.com/nc.libraries.helm
+        - name: nc.libraries.helm.staging
+          path: https://artifactorycn.netcracker.com/nc.libraries.helm.staging
+      sub_charts:
+        - name: $APPLICATION_NAME
+          path: ng-buildx/build-artifacts/helm-templates
+      nc_manifest_entity_group_id: $ENTITIES_GROUP_ID
+      nc_manifest_entity_name: ${APPLICATION_NAME}-app-chart
+
+  # 5. Publish application descriptor
+  - component: $CI_SERVER_FQDN/prod.platform.devops/nextgenci/components/nc-manifests/application-dd@1.9.0
+    inputs:
+      stage: publish
+      application_artifact_id: "$APPLICATION_ARTIFACT_ID"
+      application_name: "$APPLICATION_NAME"
+      entities_group_id: "$ENTITIES_GROUP_ID"
+      application_group_id: "$APPLICATION_ENTITIES_GROUP_ID"
+      entities:
+        - "$APPLICATION_NAME"
+        - ${APPLICATION_NAME}-app-chart

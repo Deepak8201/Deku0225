@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+# Cross-platform wrapper: delegates to the platform-specific activation script.
+# APM hooks reference this file as "${PLUGIN_ROOT}/scripts/activate" (no extension).
+dir="$(cd "$(dirname "$0")" && pwd)"
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -ExecutionPolicy Bypass -File "$dir/activate.ps1"
+elif command -v powershell >/dev/null 2>&1; then
+  powershell -ExecutionPolicy Bypass -File "$dir/activate.ps1"
+elif command -v bash >/dev/null 2>&1; then
+  bash "$dir/activate.sh"
+else
+  sh "$dir/activate.sh"
+fi

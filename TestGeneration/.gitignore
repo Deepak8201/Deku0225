@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Allure 
+allure-report/
+allure-results/
+
+# Project specific — ignore debug artifacts but keep the shipped ElementsCollected.ts template
+tests/Raw/
+!tests/Raw/Debug/ElementsCollected.ts
+
+# Local environment configuration folder — real credentials and generated config, never commit
+environment-configuration/local-environment-configuration/*
+!environment-configuration/local-environment-configuration/env-example.yaml
+!environment-configuration/local-environment-configuration/LOCAL-SETUP.md
+
+# Raw environment export from atp_export_execution_environment — contains real/encrypted secrets, never commit
+**/runtime-environment.json

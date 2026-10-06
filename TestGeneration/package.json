@@ -1,0 +1,56 @@
+{
+  "name": "ai-test-automation-framework",
+  "version": "1.0.0",
+  "description": "AI-Enhanced Test Automation Framework with Playwright and OpenAI integration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "playwright test",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "validate": "npm run type-check && npm run lint && npm run format:check",
+    "allure:generate": "allure generate allure-results --clean",
+    "allure:open": "allure open"
+  },
+  "keywords": [
+    "test-automation",
+    "playwright",
+    "ai",
+    "openai",
+    "typescript",
+    "page-object-model"
+  ],
+  "author": "AI Test Automation Framework",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^6.3.0",
+    "mssql": "^10.0.1",
+    "mysql2": "^3.6.5",
+    "oracledb": "^6.10.0",
+    "pg": "^8.11.3",
+    "ssh2": "^1.17.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/mssql": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "@types/oracledb": "^5.3.1",
+    "@types/pg": "^8.10.9",
+    "@types/ssh2": "^1.15.5",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "allure-playwright": "^3.6.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.1.0",
+    "rimraf": "^5.0.0",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

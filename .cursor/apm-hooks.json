@@ -1,0 +1,14 @@
+{
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": ".cursor/hooks/test-generation/scripts/activate",
+          "timeout": 120
+        }
+      ],
+      "_apm_source": "DEMO.SE.AI/Workplace-Agent-Packages/test-generation"
+    }
+  ]
+}

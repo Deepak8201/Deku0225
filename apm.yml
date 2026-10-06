@@ -1,0 +1,18 @@
+name: cloud-jpg-tests
+version: 0.1.0
+description: cloud-jpg-tests project — NC AI Workplace template
+
+compilation:
+  agents_md:
+    mode: managed_section
+
+targets:
+  - opencode
+  - cursor
+
+dependencies:
+  apm:
+    - git: https://git.netcracker.com/DEMO.SE.AI/Workplace-Agent-Packages.git
+      path: test-generation
+      ref: master
+      alias: test-generation

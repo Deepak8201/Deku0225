@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "mcp-atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "<YOUR_JIRA_URL>",
+        "JIRA_USERNAME": "<YOUR_JIRA_USERNAME>",
+        "JIRA_API_TOKEN": "<YOUR_JIRA_API_TOKEN>",
+        "CONFLUENCE_URL": "<YOUR_CONFLUENCE_URL>",
+        "CONFLUENCE_USERNAME": "<YOUR_CONFLUENCE_USERNAME>",
+        "CONFLUENCE_API_TOKEN": "<YOUR_CONFLUENCE_API_TOKEN>"
+      }
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
+    "atp-mcp": {
+      "command": "npx",
+      "args": ["-y", "@alexbuzo/atp-mcp@latest"],
+      "env": {
+        "ATP_BASE_URL": "<atp-public-gateway-url>",
+        "ATP_KEYCLOAK_URL": "<atp-keycloak-url>",
+        "ATP_REALM": "atp2",
+        "ATP_CLIENT_ID": "frontend",
+        "ATP_USERNAME": "<your-atp-user>",
+        "ATP_PASSWORD": "<your-atp-password>",
+        "ATP_PROJECT_ID": "<atp-project-uuid>"
+      }
+    }
+  }
+}

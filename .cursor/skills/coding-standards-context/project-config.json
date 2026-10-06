@@ -1,0 +1,65 @@
+{
+  "initialized": true,
+  "timestamp": "2026-10-01T00:00:00.000Z",
+  "framework": "Playwright/TypeScript E2E Test Automation (AI-Enhanced)",
+  "version": "1.58.2",
+  "language": "TypeScript 6.0.3 (test runtime); application under test language not yet selected",
+  "linter": "ESLint",
+  "formatter": "Prettier",
+  "namingConventions": {
+    "general": "TypeScript: camelCase for variables/functions, PascalCase for classes; test IDs use TC_XXX_vYYY_Name format",
+    "files": "Test scenarios: *.spec.ts under TestGeneration/tests/TestScenario/; page objects: PascalCase in Functional/; business workflows: PascalCase in Business/",
+    "components": "Page objects extend AIPage (or AITomsPage for grid/TOMS pages); locators resolved via AIElement cache-first strategy"
+  },
+  "documentationStandard": "TSDoc for TypeScript test code; application documentation convention TBD",
+  "typeStrictness": "Strict TypeScript in TestGeneration/ via TestGeneration/tsconfig.json; application strictness TBD",
+  "configuration": {},
+  "patterns": [
+    "Layered test architecture: TestScenario → Business Workflows → Functional Page Objects → SharedRuntime",
+    "Page objects extend AIPage (or AITomsPage for grid pages); locators managed via locator_cache.json and AIElement",
+    "Database support via runtime dependencies: MongoDB ^6.3, MSSQL ^10, MySQL2 ^3.6, OracleDB ^6.10, PostgreSQL ^8.11, SSH2 ^1.17",
+    "Mandatory test tags: suite, priority, type, dataImpact — all validated against TagConfiguration.json",
+    "Document public interfaces, classes, and non-trivial methods with TSDoc"
+  ],
+  "conventions": [
+    "Prefer consistency with existing code over personal preference",
+    "Keep functions and modules focused on a single responsibility",
+    "Use clear, descriptive names; avoid abbreviations unless they are domain-standard"
+  ],
+  "constraints": [
+    "Strict TypeScript (strict, noImplicitAny, strictNullChecks, noUncheckedIndexedAccess, exactOptionalPropertyTypes) enforced in TestGeneration/tsconfig.json",
+    "Tests run Chromium only (Desktop Chrome device profile); single worker in both local and CI environments",
+    "Per-test timeout: 30 minutes; action timeout: 60 seconds",
+    "Application under test (AUT) stack not yet configured — run /initialize after AUT is selected"
+  ],
+  "testing": {
+    "tddPolicy": "recommended",
+    "mandatoryCategories": [
+      "domain logic",
+      "regression bug fixes"
+    ],
+    "framework": "Playwright 1.58.2",
+    "e2eFramework": "Playwright 1.58.2",
+    "coverageTool": "Not configured",
+    "runCommand": "cd TestGeneration && npx playwright test <path/to/file.spec.ts>",
+    "runAllCommand": "cd TestGeneration && npm test",
+    "runByTag": "cd TestGeneration && npx playwright test --grep @<tag>",
+    "watchCommand": "Not configured",
+    "fileNaming": "*.spec.ts",
+    "fileLocation": "TestGeneration/tests/TestScenario/ (Playwright testDir)",
+    "nameStyle": "TC_XXX_vYYY_Name testId format; behavior-oriented descriptions",
+    "mockingStrategy": "Prefer explicit stubs/fakes for boundaries; use framework mocks when idiomatic",
+    "coverageThresholds": {
+      "statements": "80%",
+      "branches": "75%",
+      "functions": "80%",
+      "lines": "80%",
+      "enforcement": "Not configured until CI is enabled"
+    },
+    "outputDir": "TestGeneration/tests/Raw/Report/",
+    "ciIntegration": "GitLab CI skeleton present in .gitlab-ci.yml; uses TEST_PARAMS JSON env var for execution list",
+    "taskmasterUsage": "complex-only",
+    "notes": "Playwright 1.58.2 with 30-minute per-test timeout, Chromium only. Mandatory tags per test: suite, priority, type, dataImpact. Environment configured via environment-configuration-template.json with ${PLACEHOLDER} tokens; 10 cloud systems pre-configured."
+  },
+  "projectSpecificNotes": "AI-Enhanced Test Automation Framework (v1.0.0) using Playwright 1.58.2 and TypeScript 6.0.3. Layered page-object model with AIPage/AIElement base classes in SharedRuntime/. Environment configured via template JSON with ${PLACEHOLDER} tokens (10 cloud systems pre-configured). Application under test (AUT) stack not yet configured — run /initialize after AUT selection. Answers ported from the already-verified .opencode/skills/coding-standards-context/project-config.json (cross-harness project; .opencode/ was initialized first)."
+}

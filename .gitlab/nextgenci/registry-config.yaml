@@ -1,0 +1,48 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NextGenCI Registry Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+# This file defines registry and repository configurations for your organization.
+# Copy this file to your project and customize the values as needed.
+
+variables:
+  # ✅ Registry Authentication & Connection
+  NG_CI_REGISTRY_HOST: "https://artifactorycn.netcracker.com"
+  NG_CI_REGISTRY_USER: "$ARTIFACTORY_USER"
+  NG_CI_REGISTRY_CREDENTIALS: "$ARTIFACTORY_PASSWORD"
+  NG_CI_REGISTRY_AUTH_TYPE: "basic"                    # Options: none, basic, token
+  NG_CI_REGISTRY_TYPE: "artifactory"                   # Options: artifactory, nexus, ecr, etc.
+
+  # ✅ Maven Repository Configuration
+  NG_CI_MAVEN_GROUP_REPO_NAME: "pd.saas.mvn.group"          # Maven proxy/group repository
+  NG_CI_MAVEN_SNAPSHOT_REPO_NAME: "pd.saas.mvn.snapshots"   # Maven snapshot repository
+  NG_CI_MAVEN_STAGING_REPO_NAME: "pd.saas.mvn.staging"      # Maven staging repository
+  NG_CI_MAVEN_RELEASE_REPO_NAME: "pd.saas.mvn"              # Maven release repository
+  NG_CI_MAVEN_RELEASE_PROXY_REPO_NAME: "pd.saas-release.mvn.group"  # Maven proxy release repo
+
+  # ✅ NPM Repository Configuration
+  NG_CI_NPM_GROUP_REPO_NAME: "pd.saas.npm"                 # NPM proxy/group repository
+  NG_CI_NPM_SNAPSHOT_REPO_NAME: "pd.saas.npm.dev"          # NPM development repository
+  NG_CI_NPM_RELEASE_REPO_NAME: "pd.saas.npm"                # NPM release repository
+
+  # ✅ Docker Registry Configuration
+  NG_CI_DOCKER_GROUP_REGISTRY_HOST: "artifactorycn.netcracker.com:17004"     # Docker pull registry
+  NG_CI_DOCKER_GROUP_REPO_NAME: "pd.saas.docker.group"                       # Docker group repo name
+  NG_CI_DOCKER_SNAPSHOT_REGISTRY_HOST: "artifactorycn.netcracker.com:17004"  # Docker push registry
+  NG_CI_DOCKER_SNAPSHOT_REPO_NAME: "pd.saas.docker.dev"                      # Docker snapshot repo name
+  NG_CI_DOCKER_STAGING_REGISTRY_HOST: "artifactorycn.netcracker.com:17002"   # Docker push staging registry
+  NG_CI_DOCKER_STAGING_REPO_NAME: "pd.saas.docker.staging"                   # Docker staging repo name
+  NG_CI_DOCKER_RELEASE_REGISTRY_HOST: "artifactorycn.netcracker.com:17003"   # Docker push release registry
+  NG_CI_DOCKER_RELEASE_REPO_NAME: "pd.saas.docker"
+  NG_CI_DOCKER_THIRD_PARTY_REGISTRY_HOST: "artifactorycn.netcracker.com:17114"                           # Docker release repo name
+
+  # ✅ Helm Chart Repository Configuration
+  NG_CI_HELM_LIB_REPO_NAME: "nc.libraries.helm"                   # Helm library repository
+  NG_CI_HELM_LIB_SNAPSHOT_REPO_NAME: "nc.libraries.helm.staging"  # Helm library staging
+  NG_CI_HELM_GROUP_REPO_NAME: "nc.helm.charts"                    # Helm group repository
+  NG_CI_HELM_SNAPSHOT_REPO_NAME: "nc.helm.charts.dev"             # Helm snapshot repository
+  NG_CI_HELM_STAGING_REPO_NAME: "nc.helm.charts.staging"          # Helm staging repository
+  NG_CI_HELM_RELEASE_REPO_NAME: "nc.helm.charts.release"          # Helm release repository
+
+  # ✅ Go Module Repository Configuration
+  NG_CI_GOLANG_GROUP_REPO_NAME: "pd.saas-release.golang.group"    # Go proxy/group repository
+  NG_CI_GOLANG_SNAPSHOT_REPO_NAME: "pd.saas.golang.dev"           # Go development repository

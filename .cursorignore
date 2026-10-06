@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+
+# System files
+.git/
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+
+# TaskMaster task files
+.taskmaster/tasks/*.md
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# APM / AI Workplace (Cursor line)
+apm_modules/
+.cursor/.backups/
+.cursor/.update-backup/
+.cursor/.temp-update/
+.cursor/.temp-apm-selection.json
+.workplace/activated/
+.workplace/state.json
+
+# Test runtime artifacts (TestGeneration/)
+TestGeneration/node_modules/
+TestGeneration/tests/Raw/Report/

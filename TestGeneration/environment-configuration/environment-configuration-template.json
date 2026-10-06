@@ -1,0 +1,132 @@
+{
+  "systems": [
+    {
+      "cpq-admin-ui-service": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://cpq-admin-ui-service-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "public-gateway": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://public-gateway-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "login": "${DEFAULT_TENANT_ADMIN_LOGIN}",
+              "password": "${DEFAULT_TENANT_ADMIN_PASSWORD}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "amx-cpq-frontend-service": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://amx-cpq-frontend-service-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "login_button": "Sign In",
+              "project": "${ENVIRONMENT_NAME}-bss",
+              "cluster": "${CLOUD_PUBLIC_HOST}",
+              "login": "${DEFAULT_TENANT_ADMIN_LOGIN}",
+              "password": "${DEFAULT_TENANT_ADMIN_PASSWORD}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "private-gateway": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://private-gateway-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "login": "${DEFAULT_TENANT_ADMIN_LOGIN}",
+              "password": "${DEFAULT_TENANT_ADMIN_PASSWORD}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "pim-frontend-srv": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://pim-frontend-srv-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "login": "${DEFAULT_TENANT_ADMIN_LOGIN}",
+              "password": "${DEFAULT_TENANT_ADMIN_PASSWORD}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "consul": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CONSUL_PUBLIC_URL}",
+              "token": "${CONSUL_ADMIN_TOKEN}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "om-frontend-app-ui": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://om-frontend-app-ui-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "cip": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://cloud-integration-platform-ui-${ENVIRONMENT_NAME}.${CLOUD_PUBLIC_HOST}",
+              "dns": "${ENVIRONMENT_NAME}",
+              "public_gateway_url": "${CLOUD_PROTOCOL}://public-gateway-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "private_gateway_url": "${CLOUD_PROTOCOL}://private-gateway-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}",
+              "login": "${DEFAULT_TENANT_ADMIN_LOGIN}",
+              "client_id": "frontend",
+              "password": "${DEFAULT_TENANT_ADMIN_PASSWORD}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "utm-frontend-app-ui": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://utm-frontend-app-ui-${ENVIRONMENT_NAME}-bss.${CLOUD_PUBLIC_HOST}"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "eso-umbrella-frontend-app-ui": {
+        "connections": [
+          {
+            "HTTP": {
+              "url": "${CLOUD_PROTOCOL}://eso-umbrella-ui-${ENVIRONMENT_NAME}-oss.${CLOUD_PUBLIC_HOST}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

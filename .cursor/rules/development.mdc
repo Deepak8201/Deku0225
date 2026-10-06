@@ -1,0 +1,104 @@
+---
+description: "Core development practices - technology stack overview and architecture patterns"
+alwaysApply: true
+---
+
+# Project Development Guidelines
+
+> **Central Development Rule** — Technology stack reference and architecture overview.
+>
+> Workflow orchestration is handled by [orchestrator.mdc](mdc:orchestrator.mdc). Specialized agents in `.cursor/agents/` and domain skills in `.cursor/skills/` are discovered and activated natively by Cursor based on task context and their `description` frontmatter. Each domain skill has a `project-config.json` with project-specific configuration filled during initialization Phase 6.
+
+---
+
+## Project Technology Stack
+
+> **Single Source of Truth:** This section is automatically populated during project initialization (Phase 3).
+
+### Core Technologies
+
+- **Framework:** [TO_BE_FILLED during initialization]
+- **Build Tool:** [TO_BE_FILLED during initialization]
+- **Styling:** [TO_BE_FILLED during initialization]
+- **State Management:** [TO_BE_FILLED during initialization]
+- **Testing:** [TO_BE_FILLED during initialization]
+- **Package Manager:** [TO_BE_FILLED during initialization]
+- **TypeScript:** [TO_BE_FILLED during initialization]
+
+### Stack Details
+
+- **Framework Version:** [TO_BE_FILLED during initialization]
+- **Key Dependencies:** [TO_BE_FILLED - top 5-10 critical packages with versions]
+- **Development Tools:** [TO_BE_FILLED - ESLint, Prettier, Husky, etc.]
+
+### Stack Configuration Notes
+
+[TO_BE_FILLED during initialization - any important notes about stack choices, version constraints, or migration plans]
+
+---
+
+## Architecture Overview
+
+### Architecture Pattern
+
+[TO_BE_FILLED during initialization - e.g., "Monolith", "Microservices", "Modular monolith"]
+
+### Key Architectural Decisions
+
+[TO_BE_FILLED during initialization - major architectural decisions and rationale]
+
+### Data Flow Strategy
+
+[TO_BE_FILLED during initialization - e.g., "REST API", "GraphQL", "tRPC"]
+
+---
+
+## Dependency & Pattern Governance
+
+> Applies to all agents. Full protocol is defined in [orchestrator.mdc — Agent Behavioral Principles](mdc:orchestrator.mdc).
+
+| Change Type | Required Action |
+|-------------|----------------|
+| New runtime dependency | Explicit user approval — state what it does, why existing deps can't cover it, and alternatives |
+| New dev/build tooling | Discussion with user — state impact on build pipeline and developer workflow |
+| New architectural pattern not already in codebase | Discussion with user — state trade-offs vs. existing patterns |
+| New framework plugin or major version upgrade | Discussion with user — state migration effort and breaking changes |
+| New APM package added to project's `apm.yml` | Discussion with user — state what the package adds (agents, skills, prompts, MCP), `x-workplace.type`, and any runtime folder it relocates (full modules). Re-run `APM_LEGACY_SKILL_PATHS=1 apm install` after editing. The lockfile (`apm.lock.yaml`) MUST be committed. |
+
+When in doubt whether a new dependency or pattern is needed, **ask the user first** with full reasoning before proceeding.
+
+---
+
+## Related Documentation
+
+- [AGENTS.md](mdc:../AGENTS.md) - AI agent instructions
+- [README.md](mdc:../../README.md) - Project overview
+- [.cursor/project_init.md](mdc:../project_init.md) - Initialization configuration
+- [orchestrator.mdc](mdc:orchestrator.mdc) - Workflow orchestration and command routing
+
+---
+
+## Changelog
+
+<!-- Auto-populated during initialization -->
+
+| Date | Change | Phase |
+|------|--------|-------|
+| [TO_BE_FILLED] | Initial configuration | Phase 3 |
+| [TO_BE_FILLED] | Domain skills configured | Phase 6 |
+
+> **Template v4.8.0** (2026-09-02): the Workplace’s own `docs/**` guides are now reachable from the agent surfaces. New Core reference `project-initialization/references/workplace-docs.md` maps all twelve documents (purpose, read-it-when trigger, verified anchors) and defines a five-tier resolution contract — local workspace, template clone, HTTPS raw, authenticated sparse git clone, then degrade honestly without inventing content — because `docs/**` is `"optional": true` and absent from most initialized projects. New Core script `scripts/fetch-workplace-doc.js` implements tiers 0-3 and treats HTML / sign-in redirects / 401 / 403 as a private-GitLab auth wall rather than a missing file. Thin pointers added to `orchestrator.mdc` and to five skills and five commands; the duplicated `APM_PACKAGES.md` resolution recipe now delegates to the map. Link-form rule (workplace-docs.md §7): links from `.cursor/**` into `docs/**` are absolute URLs — 19 relative/`mdc:` links that would block `validate-doc-links.js` in any project without `docs/` were converted. `coreFiles` 94 → 96. Migration: none — the Core copy delivers everything. See [CHANGELOG.md](mdc:../../CHANGELOG.md).
+>
+> **Template v4.7.0** (2026-09-02): pre-release audit of the 4.5.2/4.6.0 port; all four unreleased versions ship together, so every artifact ships in its 4.7.0 form. Highlights: the template manifest was restored to its `fresh`/`pending` baseline (an in-repo `-Apply` run had stamped it as an initialized project, which routes a fresh clone's `/initialize` to the Updater); `validate-apm-install.ps1` gained `-PreInstall` for step 5.0b (the bare pre-flight failed every fresh run); `check-guidelines-specificity.js` refuses to run an empty gate (exit 2) instead of silently passing when the deleted selection file is named via `--required-from`; `/update-workplace` now copies `.cursor/skills/*/scripts/` and runs pending migrations on **every** update type, not just Major; `codebase-analysis/SKILL.md` dispatches `codebase-analyzer` (not `explore`) wherever a later phase reads an artifact; Phase 6 Part 2 gained Step 0 (install the owning package before writing answers); `/quick-init` Step 4.5 offers detection-driven packages; `coreFiles` grew to 94 entries covering everything the updater overwrites. Migration: none — the Core copy delivers everything. See [CHANGELOG.md](mdc:../../CHANGELOG.md).
+>
+> **Template v4.6.0** (2026-09-01): initialization cost and structure. Phase 4 no longer scans the repository inline — it dispatches one `codebase-analyzer` subagent per component, each writing `.cursor/project/analysis/<component>.{json,md}` and returning a ≤ 25-line summary; the orchestrator merges those into `analysis/index.json` and gates the wave on `validate-analysis.js`. Dispatch mechanics are fixed by the new [subagent-contract.md](mdc:../skills/project-initialization/references/subagent-contract.md) (seven brief blocks, hard budgets, parallel dispatch, report-to-disk). `readonly: true` was being passed as a non-existent `Task` parameter in six places and is gone — read-only behaviour comes from the brief. The three Phase 4/5/6 monoliths became routers plus 19 step files under `references/phase-4|5|6/`, routed from `SKILL.md`; read the step file, not the directory. Phase 6's API sub-analysis is now conditional on `coverage.api`, Part 3 renders `coding-standards-context` first as sole owner of the cross-cutting rules, and Part 3.5 gained a render-order/ownership check. Safe stop points after Phases 4, 6 and 7.5, with resumption keyed on state on disk rather than a `--resume` flag. Migration `v4.6.0-init-restructure`. See [CHANGELOG.md](mdc:../../CHANGELOG.md).
+>
+> **Template v4.5.2** (2026-09-01): initialization reliability and diagnostics. Three Core scripts lost mechanical defects: `prepare-apm-packages.ps1` no longer aborts under Windows PowerShell 5.1 when git writes progress to stderr (and now prints which registry source it resolved), `validate-doc-links.js` no longer crashes on a deleted tracked file and gained `--scope`, and `compute-hashes.ps1/.sh` accept `"optional": true` in `coreFiles`. Two new gates catch states that reported success while producing nothing: `validate-apm-install.ps1` (a poisoned `apm.lock.yaml` entry makes every later `apm install` print `(files unchanged)` and deploy nothing) and `check-guidelines-specificity.js` (a rendered `guidelines.md` full of generalities passes the placeholder check and is useless at runtime). `/docs-sync` gained a mandatory Project-Mode context skill sync — `project-config.json` first, then re-render `guidelines.md` from it. Every bare `pwsh` invocation became `powershell -ExecutionPolicy Bypass -File …`. The offline registry snapshot was regenerated (19 → 21 packages). Migration `v4.5.2-init-reliability`. See [CHANGELOG.md](mdc:../../CHANGELOG.md).
+>
+> **Template v4.5.1** (2026-08-29): module activation is verified by the relocated `runtime/` payload instead of by `.workplace/activated/<pkg>.marker`. APM deploys a module's `scripts/` twice — the copy at `.cursor/hooks/<pkg>/scripts/` has no sibling `runtime/`, so running it activates nothing yet still writes the marker, which idempotency then makes permanent. New Core script `.cursor/skills/project-initialization/scripts/verify-apm-activation.ps1` (with `-Repair`) detects and repairs that state; `/initialize` Phase 1.7-APM step 5.2 now activates modules explicitly and gates on it. Migration `v4.5.1-activation-verification` repairs existing projects via `/update-workplace`. See [CHANGELOG.md](mdc:../../CHANGELOG.md) and [apm-workflow.md](mdc:../skills/project-initialization/references/apm-workflow.md) §6.1–6.2.
+>
+> **Template v4.5.0** (2026-08-07): APM baseline bumped to **0.28.0** (smoke-verified). `AGENTS.md` co-ownership moved to `compilation.agents_md.mode: managed_section` + `<!-- apm:start -->` / `<!-- apm:end -->` markers (the per-package `<!-- APM:<name> -->` marker contract was retired — `apm compile` never emitted them); SessionStart docs corrected (merged into `.cursor/hooks.json` in the Claude shape — inert for Cursor; direct `scripts/activate.{ps1,sh}` remains the contract). Migration `v4.5.0-apm-0-28-baseline` upgrades existing projects via `/update-workplace`. See [CHANGELOG.md](mdc:../../CHANGELOG.md) and [docs/core/APM_PACKAGES.md](https://git.netcracker.com/DEMO.SE.AI/nc-ai-workplace/-/blob/master/docs/core/APM_PACKAGES.md).
+>
+> **Template v4.1.0** (2026-06-05): `CHANGELOG.md` moved to project root (Keep a Changelog convention). Builds on v4.0.0 — APM packages catalogue split into the standalone [Workplace-Agent-Packages](https://git.netcracker.com/DEMO.SE.AI/Workplace-Agent-Packages) repo; registry plumbing and init/authoring flows re-pointed. See [CHANGELOG.md](mdc:../../CHANGELOG.md) and [docs/core/APM_PACKAGES.md](https://git.netcracker.com/DEMO.SE.AI/nc-ai-workplace/-/blob/master/docs/core/APM_PACKAGES.md).
+>
+> **Template v4.0.0** (2026-05-17): the legacy Workplace module system (`/moduleActivate`, `Modules_Registry/`, `module-activation` skill, `role-packs-state.json`) was replaced by APM packages. Project install flow is now `apm install` (with `APM_LEGACY_SKILL_PATHS=1`). Initializer adds Phase 0 (APM CLI bootstrap) and renames Phase 1.7 to Phase 1.7-APM. See [`.cursor/skills/project-initialization/references/apm-workflow.md`](mdc:../skills/project-initialization/references/apm-workflow.md).

@@ -1,0 +1,15 @@
+{
+  "project": {
+    "name": "cloud-jpg-tests",
+    "description": "[TBD]",
+    "team": "[TBD]",
+    "repository": "https://git.netcracker.com/PROD.ATP/projects.atp/cloud-jpg/cloud-jpg-tests.git"
+  },
+  "environments": {
+    "development": "[TBD]",
+    "staging": "[TBD]",
+    "production": "[TBD]"
+  },
+  "initialized": "2026-09-30T10:37:00.000Z",
+  "template_version": "5.0.0"
+}

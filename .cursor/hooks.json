@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": "node .cursor/hooks/docs-sync-check.js",
+        "loop_limit": 1,
+        "timeout": 15
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".cursor/hooks/test-generation/scripts/activate",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
