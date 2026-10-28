@@ -106,7 +106,10 @@ test('E2E_CustomerAndBillingCreation_UIFlow', async ({ page }) => {
     await page.getByRole('button', { name: 'Create' }).click({ force: true });
     // Navigate to the newly created customer (dynamic name starts with TestCompany_)
     await page.waitForTimeout(2000);
-    await page.getByRole('link', { name: /TestCompany_/ }).first().click();
+const custLink = page.getByRole('link', { name: /TestCompany_/ }).first();
+    await page.waitForTimeout(1000);
+    await expect(custLink).toBeVisible({ timeout: 30000 });
+    await custLink.click();
     console.log('✅ Starting Phase 3: Create Billing Account');
   await page.waitForSelector('a:has-text("Finance")', { state: 'visible' });
   await page.locator('a:has-text("Finance")').scrollIntoViewIfNeeded();
@@ -161,122 +164,94 @@ test('E2E_CustomerAndBillingCreation_UIFlow', async ({ page }) => {
   // // Start Quotation//
 
   
-  // await page.getByRole('button', { name: 'Global Actions' }).click();
-  // await page.getByText('Start Quotation in B2B OC UI').click();
-  // await page.getByText('MarketType to search or').click();
-  // await page.getByRole('option', { name: 'All' }).click();
-  // await page.getByText('Distribution ChannelType to').click();
-  // await page.getByRole('option', { name: 'All' }).click();
-  // await page.getByText('StockType to search or select').click();
-  // await page.getByRole('button', { name: 'Start Quotation' }).click();
-  // console.log('✅ Phase 4 Complete: Quotation Started');
+  await page.getByRole('button', { name: 'Global Actions' }).click();
+  await page.getByText('Start Quotation in B2B OC UI').click();
+  await page.getByText('MarketType to search or').click();
+  await page.getByRole('option', { name: 'All' }).click();
+  await page.getByText('Distribution ChannelType to').click();
+  await page.getByRole('option', { name: 'All' }).click();
+  await page.getByText('StockType to search or select').click();
+  await page.getByRole('button', { name: 'Start Quotation' }).click();
+  console.log('✅ Phase 4 Complete: Quotation Started');
 
-  // // ========== PHASE 5: BUNDLE SELECTION ==========
-  // console.log('✅ Starting Phase 5: Add Bundle to Quote');
-  // await page.getByRole('button', { name: 'Global Search' }).click();
-  // await page.locator('ux-search-field label').click();
-  // await page.getByPlaceholder('Search').fill('Wired Digital Internet & Access');
-  // await page.getByRole('button', { name: 'Add to Quote' }).click();
-  // console.log('✅ Phase 5 Complete: Bundle Added');
+  // ========== PHASE 5: BUNDLE SELECTION ==========
+  console.log('✅ Starting Phase 5: Add Bundle to Quote');
+  await page.getByRole('button', { name: 'Global Search' }).click();
+  await page.locator('ux-search-field label').click();
+  await page.getByPlaceholder('Search').fill('Wired Digital Internet & Access');
+  await page.getByRole('button', { name: 'Add to Quote' }).click();
+  console.log('✅ Phase 5 Complete: Bundle Added');
 
-  // // ========== PHASE 6: SERVICE CONFIGURATION ==========
-  // console.log('✅ Starting Phase 6: Service Configuration');
-  // await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
-  // await page.getByRole('button', { name: '6', exact: true }).click();
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
+  // ========== PHASE 6: SERVICE CONFIGURATION ==========
+  console.log('✅ Starting Phase 6: Service Configuration');
+  await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
+  await page.getByRole('button', { name: /6/ }).click();
+  await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
   
-  // // Link Services
-  // await page.getByRole('button', { name: 'Alerts' }).click();
-  // await page.getByRole('link', { name: 'Access Installation #' }).click();
-  // await page.getByText('Linked Products').click();
-  // await page.getByRole('button', { name: 'Add Link' }).first().click();
-  // await page.getByRole('checkbox', { name: 'Business Main Access' }).check();
-  // await page.getByRole('button', { name: 'Add Links' }).click();
+  // Link Services
+  await page.getByRole('button', { name: 'Alerts' }).click();
+  await page.getByRole('link', { name: 'Access Installation #' }).click();
+  await page.getByText('Linked Products').click();
+  await page.getByRole('button', { name: 'Add Link' }).first().click();
+  await page.getByRole('checkbox', { name: 'Business Main Access' }).check();
+  await page.getByRole('button', { name: 'Add Links' }).click();
   
-  // // DDoS Protection
-  // await page.getByRole('button', { name: 'Open menu' }).click();
-  // await page.getByText('Settings & Highlights').click();
-  // await page.getByRole('button', { name: 'Assign Location' }).click();
-  // await page.getByRole('button', { name: 'Add New Location' }).click();
-  // await page.locator('.gm-style > div > div:nth-child(2)').click();
-  // await page.getByRole('button', { name: 'Add Location To Quote' }).click();
+  // DDoS Protection
+  await page.getByRole('button', { name: 'Open menu' }).first().click();
+  await page.getByText('Settings & Highlights').click();
+  await page.getByRole('button', { name: 'Assign Location' }).click();
+  await page.getByRole('button', { name: 'Add New Location' }).click();
+  await page.locator('.gm-style > div > div:nth-child(2)').click();
+  await page.getByRole('button', { name: 'Add Location To Quote' }).click();
   
-  // // Enable DDoS
-  // await page.getByRole('link', { name: 'GPON Connectivity #' }).click();
-  // await page.getByText('DDoS Protection Silver— $3,').click();
-  // await page.getByRole('radio', { name: 'Enable DDoS Protection Silver' }).check();
+  // Enable DDoS
+  const gponLink = page.getByRole('link', { name: /GPON Connectivity #/i }).first();
+  await expect(gponLink).toBeVisible({ timeout: 30000 });
+  await gponLink.click();
+  await page.getByText('DDoS Protection Silver— $3,').click();
+  await page.getByRole('radio', { name: 'Enable DDoS Protection Silver' }).check();
   
-  // console.log('✅ Phase 6 Complete: Services Configured');
+  console.log('✅ Phase 6 Complete: Services Configured');
 
-  // // ========== PHASE 7: CHECKOUT ==========
-  // console.log('✅ Starting Phase 7: Checkout & Delivery');
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
-  // await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
-  // await page.getByRole('button', { name: 'Proceed To Checkout' }).click();
+  // ========== PHASE 7: CHECKOUT ==========
+  console.log('✅ Starting Phase 7: Checkout & Delivery');
+  await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
+  await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
+  await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
+  await page.getByRole('button', { name: 'Proceed To Checkout' }).click();
   
-  // // Delivery
-  // await page.getByRole('checkbox', { name: 'Select' }).check();
-  // await page.getByTestId('taDeliveryAction').getByRole('button', { name: 'Select Delivery' }).click();
-  // await page.getByText('Home Delivery').click();
-  // await page.getByRole('button', { name: 'Add Delivery Method' }).click();
-  // await page.getByRole('checkbox', { name: 'Select' }).check();
-  // await page.getByRole('button', { name: 'Select Delivery in Bulk' }).click();
-  // await page.getByRole('button', { name: 'Add Delivery Method' }).click();
+  // Delivery
+  await page.getByRole('checkbox', { name: 'Select' }).check();
+  await page.getByTestId('taDeliveryAction').getByRole('button', { name: 'Select Delivery' }).click();
+  await page.getByText('Home Delivery').click();
+  await page.getByRole('button', { name: 'Add Delivery Method' }).click();
+  await page.getByRole('checkbox', { name: 'Select' }).check();
+  await page.getByRole('button', { name: 'Select Delivery in Bulk' }).click();
+  await page.getByRole('button', { name: 'Add Delivery Method' }).click();
   
-  // // Continue to Billing
-  // await page.getByRole('button', { name: 'Continue to Billing Details' }).click();
-  // await page.locator('#ux-checkbox-field-51d6ccb9-8521').check();
-  // await page.getByRole('button', { name: 'Continue to Contract' }).click();
+  // Continue to Billing
+  await page.getByRole('button', { name: 'Continue to Billing Details' }).click();
+  await page.locator('#ux-checkbox-field-51d6ccb9-8521').check();
+  await page.getByRole('button', { name: 'Continue to Contract' }).click();
   
-  // console.log('✅ Phase 7 Complete: Checkout Done');
+  console.log('✅ Phase 7 Complete: Checkout Done');
 
-  // // ========== PHASE 8: CONTRACT & ORDER ==========
-  // console.log('✅ Starting Phase 8: Contract Acceptance & Order');
-  // await page.getByRole('button', { name: 'Accept' }).first().click();
-  // await page.getByRole('button', { name: 'Manual Signature' }).click();
-  // await page.getByRole('button', { name: 'Confirm' }).click();
-  // await page.getByRole('button', { name: 'Accept' }).click();
-  // await page.getByRole('button', { name: 'Manual Signature' }).click();
-  // await page.getByRole('button', { name: 'Confirm' }).click();
+  // ========== PHASE 8: CONTRACT & ORDER ==========
+  console.log('✅ Starting Phase 8: Contract Acceptance & Order');
+  await page.getByRole('button', { name: 'Accept' }).first().click();
+  await page.getByRole('button', { name: 'Manual Signature' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
+  await page.getByRole('button', { name: 'Accept' }).click();
+  await page.getByRole('button', { name: 'Manual Signature' }).click();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   
-  // // Place Order
-  // await page.getByRole('button', { name: 'Place Order' }).click();
+  // Place Order
+  await page.getByRole('button', { name: 'Place Order' }).click();
   
   console.log('✅ Phase 8 Complete: Order Placed Successfully!');
   console.log('✅✅✅ E2E_CustomerAndBillingCreation Full Flow COMPLETED! ✅✅✅');
   
   expect(page).toBeTruthy();
-  //
-  // await page.getByRole('button', { name: 'Create' }).click();
-  // await page.getByRole('button', { name: 'Global Actions' }).click();
-  // await page.getByText('Quote', { exact: true }).click();
-  // await page.getByRole('button', { name: 'Global Actions' }).click();
-  // await page.getByText('Start Quotation in B2B OC UI').click();
-  // await page.getByText('MarketType to search or').click();
-  // await page.getByRole('option', { name: 'All' }).click();
-  // await page.getByRole('combobox', { name: 'Distribution Channel * Type' }).click();
-  // await page.getByRole('option', { name: 'All' }).click();
-  // await page.getByRole('button', { name: 'Start Quotation' }).click();
-  // await page.getByRole('button', { name: 'Global Search' }).click();
-  // await page.getByPlaceholder('Search').fill('Wired Digital Internet & Access');
-  // await page.getByRole('button', { name: 'Add to Quote' }).click();
-  // await page.getByRole('button', { name: 'Add to Quote' }).click();
-  // await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
-  // await page.getByRole('button', { name: 'Expand' }).click();
-  // await page.locator('.b2b-quote-tree-wrapper__scroll').click();
-  // await page.getByRole('button', { name: 'Proceed To Checkout' }).click();
-  // await page.locator('#ux-checkbox-field-c67bca00-cabe').check();
-  // await page.getByRole('button', { name: 'Continue to Contract' }).click();
-  // await page.getByRole('button', { name: 'Accept' }).first().click();
-  // await page.getByRole('button', { name: 'Alerts' }).click();
-  // await page.getByRole('button', { name: '14' }).click();
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
-  // await page.locator('.oe-icon.tabCart.b2b-collapsible-quote-alerts-indicator__icon > .oe-icon__container').click();
-  // await page.getByRole('button', { name: '14' }).click();
-  // await page.getByRole('button', { name: '14' }).click();
-  // await page.getByRole('button', { name: 'Go to Quote 360° View' }).click();
-  // await page.getByRole('button', { name: 'Alerts' }).click();
-  // await page.getByRole('link', { name: 'Access Installation #' }).first().click();
+
+ 
 });
