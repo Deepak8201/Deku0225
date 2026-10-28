@@ -1,0 +1,66 @@
+{
+  "id": "e2e-qa3-environment",
+  "name": "E2E_QA3_Environment",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "cloud_admin_username",
+      "value": "cloud-admin",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "cloud_admin_password",
+      "value": "MARket1234!",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "cpq_admin_username",
+      "value": "cpq-admin@netcracker.com",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "cpq_admin_password",
+      "value": "MARket1234!",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "tenant-id",
+      "value": "",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "engagedPartyId",
+      "value": "",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "customerId",
+      "value": "",
+      "type": "string",
+      "enabled": true
+    },
+    {
+      "key": "billingAccountId",
+      "value": "",
+      "type": "string",
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# Playwright Codegen Steps
+
+*Run `npx playwright codegen <baseURL>` and paste the generated script here.*

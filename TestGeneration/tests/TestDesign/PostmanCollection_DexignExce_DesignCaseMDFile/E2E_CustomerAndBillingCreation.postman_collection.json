@@ -1,0 +1,599 @@
+{
+    "info": {
+        "name": "E2E_CustomerAndBillingCreation",
+        "_postman_id": "5a9513cb-b1eb-4eea-91d1-fb013a1e7c2f",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "authorization",
+            "item": [
+                {
+                    "name": "Get cloud admin token Copy",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var data = JSON.parse(responseBody);",
+                                    "postman.setEnvironmentVariable(\"token\", data.access_token);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/auth/realms/cloud-common/protocol/openid-connect/token",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "auth",
+                                "realms",
+                                "cloud-common",
+                                "protocol",
+                                "openid-connect",
+                                "token"
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "password",
+                                    "value": "MARket1234!",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "username",
+                                    "value": "cloud-admin",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "grant_type",
+                                    "value": "password",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "frontend",
+                                    "type": "default"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {}
+                },
+                {
+                    "name": "Get cloud admin token Copy 2",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var data = JSON.parse(responseBody);",
+                                    "postman.setEnvironmentVariable(\"token\", data.access_token);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud//api/v4/tenant-manager/registration/tenants?dns=cpq",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "",
+                                "api",
+                                "v4",
+                                "tenant-manager",
+                                "registration",
+                                "tenants"
+                            ],
+                            "query": [
+                                {
+                                    "key": "dns",
+                                    "value": "cpq"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "password",
+                                    "value": "MARket1234!",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "username",
+                                    "value": "cloud-admin",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "grant_type",
+                                    "value": "password",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "frontend",
+                                    "type": "default"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
+                },
+                {
+                    "name": "Get cloud admin token Copy 3",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var data = JSON.parse(responseBody);",
+                                    "postman.setEnvironmentVariable(\"token\", data.access_token);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/payment-method-mgmt/paymentMethod/v1/paymentMethod",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "payment-method-mgmt",
+                                "paymentMethod",
+                                "v1",
+                                "paymentMethod"
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "password",
+                                    "value": "MARket1234!",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "username",
+                                    "value": "cloud-admin",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "grant_type",
+                                    "value": "password",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "frontend",
+                                    "type": "default"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
+                },
+                {
+                    "name": "Get cpq admin token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var data = JSON.parse(responseBody);",
+                                    "postman.setEnvironmentVariable(\"token\", data.access_token);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/auth/realms/{{tenant-id}}/protocol/openid-connect/token",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "auth",
+                                "realms",
+                                "{{tenant-id}}",
+                                "protocol",
+                                "openid-connect",
+                                "token"
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "password",
+                                    "value": "MARket1234!",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "username",
+                                    "value": "cpq-admin@netcracker.com",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "grant_type",
+                                    "value": "password",
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "frontend",
+                                    "type": "default"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {}
+                }
+            ]
+        },
+        {
+            "name": "create customer and billing account for B2B customer",
+            "item": [
+                {
+                    "name": "2.1 Create individuals",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Successful POST request\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                                    "});",
+                                    "var data = JSON.parse(responseBody);",
+                                    "pm.collectionVariables.set(\"engagedPartyId\", data.id);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/cim-tmf-service/partyManagement/v1/individual",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "cim-tmf-service",
+                                "partyManagement",
+                                "v1",
+                                "individual"
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "default"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"contactMedium\": [\n    {\n      \"preferred\": false,\n      \"type\": \"Telephone number\",\n      \"isActive\": true,\n      \"preferredNotification\": false,\n      \"characteristic\": {\n        \"emailAddress\": \"test@example.com\",\n        \"city\": \"Pune\",\n        \"phoneNumber\": \"9876543210\",\n        \"country\": \"US\",\n        \"postCode\": \"411033\",\n        \"stateOrProvince\": \"Maharashtra\",\n        \"street1\": \"Test Street\",\n        \"street2\": \"Building 1\",\n        \"type\": \"Home\"\n      }\n    }\n  ],\n  \"billingData\": {\n    \"contactType\": \"6c44ba45-56ff-4df8-8878-a2c58640f3e2\"\n  },\n  \"nationality\": \"US\",\n  \"languageRef\": [\n    {\n      \"isoCode\": \"ENG_US\"\n    }\n  ],\n  \"familyName\": \"test\",\n  \"gender\": \"Male\",\n  \"givenName\": \"eca\"\n}\n",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {}
+                },
+                {
+                    "name": "2.2 Create customer_B2B",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Successful POST request\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                                    "});",
+                                    "var data = JSON.parse(responseBody);",
+                                    "postman.setEnvironmentVariable(\"customerId\", data.id);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/cim-tmf-service/customerManagement/v1/customer",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "cim-tmf-service",
+                                "customerManagement",
+                                "v1",
+                                "customer"
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "default"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"cbcc_b2b\",\n    \"engagedParty\": {\"id\": \"{{engagedPartyId}}\", \"@referredType\": \"Individual\"},\n    \"customerCategoryId\": \"18513638-6143-4fef-823b-7df2cc2f64c2\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {}
+                },
+                {
+                    "name": "2.7 Create account",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test(\"Successful POST request\", function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                                    "});",
+                                    "var data = JSON.parse(responseBody);",
+                                    "pm.collectionVariables.set(\"billingAccountId\", data.id);"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "url": {
+                            "raw": "https://public-gateway-e2e-bss-qa3.saas-rnd-bss-qa-01.managed.netcracker.cloud/account-mgmt-tmf/accountManagement/v2/billingAccount",
+                            "protocol": "https",
+                            "host": [
+                                "public-gateway-e2e-bss-qa3",
+                                "saas-rnd-bss-qa-01",
+                                "managed",
+                                "netcracker",
+                                "cloud"
+                            ],
+                            "path": [
+                                "account-mgmt-tmf",
+                                "accountManagement",
+                                "v2",
+                                "billingAccount"
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "default"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}",
+                                "type": "default"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Postpaid\",\n  \"state\": \"ACTIVE\",\n  \"type\": \"Postpaid\",\n  \"defaultAccountCurrency\": { \"id\": \"USD\" },\n  \"notificationLanguage\": \"ENG_US\",\n  \"taxInclusive\": false,\n  \"prepaid\": false,\n  \"partyAccountDetails\": {\n    \"creditClass\": \"1876cd8e-0898-4ffc-b400-598a05d56859\",\n    \"defaultPaymentMethod\": \"1876cd8e-0898-4ffc-b400-598a05d56859\"\n  },\n  \"relatedParty\": [\n    { \"id\": \"{{customerId}}\", \"role\": \"Customer\" }\n  ],\n  \"invoicingCompany\": \"024e8182-7700-4719-9d29-1f0249107531\",\n  \"@type\": \"BillingAccount\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": [],
+                    "protocolProfileBehavior": {}
+                }
+            ]
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "engagedPartyId",
+            "value": "01a15d0d-4965-712c-af35-0c0d07245372",
+            "type": "default"
+        },
+        {
+            "key": "billingAccountId",
+            "value": "",
+            "type": "default"
+        }
+    ]
+}

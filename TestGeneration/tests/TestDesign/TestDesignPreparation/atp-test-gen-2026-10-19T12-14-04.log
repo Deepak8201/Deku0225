@@ -1,0 +1,6 @@
+[2026-10-19 12:14:04] INFO    Reading: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\E2E_CustomerAndBillingCreation_test_cases.xlsx
+[2026-10-19 12:14:04] INFO    Found 1 sheets. Detecting API sheets...
+[2026-10-19 12:14:04] INFO    Processing sheet: "E2E_CustomerAndBillingCreation" (5 steps)...
+[2026-10-19 12:14:04] SUCCESS Generated: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\E2E_CustomerAndBillingCreation_test_design.md
+[2026-10-19 12:14:04] SUCCESS Done. Generated 1 file(s) in: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation
+[2026-10-19 12:14:04] INFO    Log written to: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\atp-test-gen-2026-10-19T12-14-04.log

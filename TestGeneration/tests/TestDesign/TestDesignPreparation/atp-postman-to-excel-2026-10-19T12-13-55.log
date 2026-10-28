@@ -1,0 +1,4 @@
+[2026-10-19 12:13:54] INFO    Reading: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\E2E_CustomerAndBillingCreation.json
+[2026-10-19 12:13:55] INFO    Collection: "E2E_CustomerAndBillingCreation" — 5 request(s) found.
+[2026-10-19 12:13:55] SUCCESS Done. Generated: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\E2E_CustomerAndBillingCreation_test_cases.xlsx
+[2026-10-19 12:13:55] INFO    Log written to: C:\Users\deku0225\Videos\AT task\cloud-jpg-tests\TestGeneration\tests\TestDesign\TestDesignPreparation\atp-postman-to-excel-2026-10-19T12-13-55.log

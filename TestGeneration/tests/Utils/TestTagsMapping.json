@@ -1,5 +1,28 @@
 {
   "version": "1.0.0",
   "lastUpdated": "2026-01-12T00:00:00Z",
-  "tests": {}
+  "tests": {
+    "TC_001_v001_APICustomerCreation": {
+      "description": "API test for creating a customer",
+      "tags": {
+        "suite": "full",
+        "priority": "high",
+        "type": "e2e",
+        "dataImpact": "mutating",
+        "environment": ["dev"],
+        "stability": "stable"
+    },
+    "E2E_FullFlow": {
+      "description": "Generated full flow end-to-end test",
+      "tags": {
+        "suite": "full",
+        "priority": "high",
+        "type": "e2e",
+        "dataImpact": "mutating",
+        "environment": ["dev"],
+        "stability": "stable"
+      }
+    }
+  }
+  }
 }

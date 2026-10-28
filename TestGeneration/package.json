@@ -28,6 +28,7 @@
   "author": "AI Test Automation Framework",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.20.0",
     "mongodb": "^6.3.0",
     "mssql": "^10.0.1",
     "mysql2": "^3.6.5",
@@ -44,7 +45,8 @@
     "@types/ssh2": "^1.15.5",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "allure-playwright": "^3.6.0",
+    "allure-commandline": "^2.46.1",
+    "allure-playwright": "^3.14.0",
     "eslint": "^8.0.0",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.0",
